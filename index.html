@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dragon Story</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+<style>
+.container {
+  width: 100%;
+}
+iframe {
+  width: 100%;
+  border: none;
+  overflow: hidden;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h3>Dragon Story</h3>
+  </div>
+
+  <ul class="nav nav-tabs" id="tabs">
+    <li class="active"><a href="#breedingtab" data-toggle="tab">Breeding</a></li>
+    <li><a href="#battletab" data-toggle="tab">Battle Arena</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane active" id="breedingtab">
+      <iframe src="breed.html"></iframe>
+    </div>
+    <div class="tab-pane" id="battletab">
+      <iframe src="battle.html"></iframe>
+    </div>
+  </div>
+
+  <div class="well">
+    <div class="row">
+      <div class="col-sm-6 col-md-6">
+        Twitter <a href="http://twitter.com/angusdev">@angusdev</a>
+      </div>
+      <div class="col-sm-6 col-md-6" style="text-align:right;">
+        Data Source: <a href="http://dragon-story.wikia.com/">http://dragon-story.wikia.com/</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<select id="select_opponent" style="display:none;"></select>
+<select id="select_opponent_level" style="display:none;"></select>
+<div style="display:none;"><div id="form_opponent"></div></div>
+<div id="content_scores" style="display:none;"></div>
+</body>
+<script>
+$(document).ready(function() {
+  if (document.location.protocol === 'file:') {
+    $('.tab-content iframe').height(1000);
+  }
+  else {
+    window.setInterval(function() {
+      $('.tab-content iframe').each(function() {
+        var h = $(this).contents().find(".container").height();
+        $(this).height(h);
+      });
+    }, 100);
+  }
+});
+</script>
+</html>
