@@ -42,12 +42,16 @@ iframe {
 <div class="container">
   <ul class="nav nav-tabs" id="tabs">
     <li class="active"><a href="#breedtab" data-toggle="tab">Breeding</a></li>
+    <li><a href="#parenttab" data-toggle="tab">Parents</a></li>
     <li><a href="#battletab" data-toggle="tab">Battle Arena</a></li>
   </ul>
 
   <div class="tab-content">
     <div class="tab-pane active" id="breedtab">
       <iframe src="breed.html"></iframe>
+    </div>
+    <div class="tab-pane" id="parenttab">
+      <iframe src="parent.html"></iframe>
     </div>
     <div class="tab-pane" id="battletab">
       <iframe src="battle.html"></iframe>
@@ -104,6 +108,7 @@ function loadData(reload) {
 }
 
 var breedReady = false;
+var parentReady = false;
 var battleReady = false;
 
 $(document).ready(function() {
@@ -127,11 +132,14 @@ $(document).ready(function() {
     if (page === 'breed') {
       breedReady = true;
     }
+    else if (page === 'parent') {
+      parentReady = true;
+    }
     else if (page === 'battle') {
       battleReady = true;
     }
 
-    if (breedReady && battleReady) {
+    if (breedReady && parentReady && battleReady) {
       loadData();
     }
   });
