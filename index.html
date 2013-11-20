@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <title>Dragon Story</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="jquery.xdomainajax.ellab-1.0.js"></script>
 <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<script src="dragonstory.js"></script>
 <link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 <style>
 .container {
@@ -18,18 +20,33 @@ iframe {
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="page-header">
-    <h3>Dragon Story</h3>
+<nav class="navbar navbar-default" role="navigation">
+  <div class="navbar-header">
+    <span class="navbar-brand">Dragon Story</span>
   </div>
 
+  <!-- Collect the nav links, forms, and other content for toggling -->
+  <div class="collapse navbar-collapse">
+    <div class="navbar-form navbar-right">
+      <span id='dragon-count'>Loading...</span>
+      <button type="submit" class="btn btn-default" data-role="reload">Reload</button>
+    </div>
+    <div class="navbar-form navbar-right">
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search">
+      </div>
+    </form>
+  </div><!-- /.navbar-collapse -->
+</nav>
+
+<div class="container">
   <ul class="nav nav-tabs" id="tabs">
-    <li class="active"><a href="#breedingtab" data-toggle="tab">Breeding</a></li>
+    <li class="active"><a href="#breedtab" data-toggle="tab">Breeding</a></li>
     <li><a href="#battletab" data-toggle="tab">Battle Arena</a></li>
   </ul>
 
   <div class="tab-content">
-    <div class="tab-pane active" id="breedingtab">
+    <div class="tab-pane active" id="breedtab">
       <iframe src="breed.html"></iframe>
     </div>
     <div class="tab-pane" id="battletab">
@@ -55,6 +72,40 @@ iframe {
 <div id="content_scores" style="display:none;"></div>
 </body>
 <script>
+function loadData(reload) {
+  var ds = org.ellab.dragonstory;
+
+  $('#dragon-count').html('Loading...');
+
+  $('.tab-content iframe').each(function(){
+    this.contentWindow.$('body').trigger('ellabBreedDataBeforeLoad');
+    this.contentWindow.$('body').trigger('ellabBattleDataBeforeLoad');
+  });
+
+  if (reload) {
+    ds.clearStoredBreedData();
+    ds.clearStoredBattleData();
+  }
+
+  $.when(ds.loadBreedData(), ds.loadBattleData()).done(function(breed, battle) {
+    // I know, I know this is dangerous
+    eval(breed);
+
+    $('#dragon-count').html(Object.keys(breeds).length + ' Dragons');
+
+    breeds = null;
+
+    $('.tab-content iframe').each(function(){
+      this.contentWindow.$('body')
+        .trigger('ellabBreedDataChanged', [ breed ] )
+        .trigger('ellabBattleDataChanged', [ battle ] );
+    });
+  });
+}
+
+var breedReady = false;
+var battleReady = false;
+
 $(document).ready(function() {
   if (document.location.protocol === 'file:') {
     $('.tab-content iframe').height(1000);
@@ -67,6 +118,24 @@ $(document).ready(function() {
       });
     }, 100);
   }
+
+  $('[data-role="reload"]').click(function(e) {
+    loadData(true);
+  });
+
+  $(document.body).bind('ellabPageReady', function(e, page) {
+    if (page === 'breed') {
+      breedReady = true;
+    }
+    else if (page === 'battle') {
+      battleReady = true;
+    }
+
+    if (breedReady && battleReady) {
+      loadData();
+    }
+  });
+
 });
 </script>
 </html>

@@ -20,6 +20,11 @@ registerNS("org.ellab.dragonstory");
 var BREED_DATA_VERSION = 1;
 var BATTLE_DATA_VERSION = 1;
 
+org.ellab.dragonstory.clearDragonBtn = function() {
+  $('[data-role="dragon-prefix-btn-group"]').empty();
+  $('[data-role="dragon-name-btn-group"]').empty();
+};
+
 org.ellab.dragonstory.makeDragonBtn = function() {
   var $btngroup = $('[data-role="dragon-prefix-btn-group"]');
   for (var i=0 ; i<26 ; i++) {
@@ -44,12 +49,22 @@ org.ellab.dragonstory.makeDragonBtn = function() {
   });
 };
 
+org.ellab.dragonstory.clearLevelBtn = function() {
+  $('[data-role="dragon-level-btn-group"]').empty();
+};
+
 org.ellab.dragonstory.makeLevelBtn = function() {
   var $btngroup = $('[data-role="dragon-level-btn-group"]');
   for (var i=1 ; i<=20; i++) {
     $btngroup.append('<label class="btn btn-default' + (i===20?' active':'') + '"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + i + '">' + i + '</label>');
   }
   $btngroup.find(':radio[value=20]').prop('checked', true);
+};
+
+org.ellab.dragonstory.clearStoredBreedData = function() {
+  if (localStorage) {
+    localStorage.removeItem('ellab-dragonstory-breed');
+  }
 };
 
 org.ellab.dragonstory.getStoredBreedData = function() {
@@ -107,6 +122,12 @@ org.ellab.dragonstory.loadBreedData = function () {
   }
 
   return deferred;
+};
+
+org.ellab.dragonstory.clearStoredBattleData = function() {
+  if (localStorage) {
+    localStorage.removeItem('ellab-dragonstory-battle');
+  }
 };
 
 org.ellab.dragonstory.getStoredBattleData = function() {
