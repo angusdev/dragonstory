@@ -20,6 +20,15 @@ registerNS("org.ellab.dragonstory");
 var BREED_DATA_VERSION = 1;
 var BATTLE_DATA_VERSION = 1;
 
+org.ellab.dragonstory.capitalize = function(s) {
+  if (typeof s === 'string' && s.length > 0) {
+    return s.charAt(0).toUpperCase() + s.substring(1);
+  }
+  else {
+    return s;
+  }
+};
+
 org.ellab.dragonstory.clearDragonBtn = function() {
   $('[data-role="dragon-prefix-btn-group"]').empty();
   $('[data-role="dragon-name-btn-group"]').empty();
