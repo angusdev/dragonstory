@@ -6,8 +6,11 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="jquery.xdomainajax.ellab-1.0.js"></script>
 <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<script src="http://cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
+<script src="//cdn.jsdelivr.net/hogan.js/2.0.0/hogan.common.js"></script>
 <script src="dragonstory.js"></script>
 <link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="bootstrap-more.css">
 <style>
 .container {
   width: 100%;
@@ -17,31 +20,25 @@ iframe {
   border: none;
   overflow: hidden;
 }
-.flyover {
-   left: 150%;
-   overflow: hidden;
-   position: fixed;
-   width: 50%;
-   opacity: 0.9;
-   z-index: 1050;
-   transition: left 0.6s ease-out 0s;
-   -webkit-transition: left 0.6s ease-out 0s;
-}
-.flyover-centered {
-   top: 50%;
-   transform: translate(-50%, -50%);
-   -webkit-transform: translate(-50%, -50%);
-}
-.flyover.in {
-   left: 50%;
+
+.navbar [data-role="search-dragon"] {
+  width: 320px;
 }
 
-.dropdown-submenu{position:relative;}
-.dropdown-submenu>.dropdown-menu{top:0;left:100%;margin-top:-6px;margin-left:-1px;-webkit-border-radius:0 6px 6px 6px;-moz-border-radius:0 6px 6px 6px;border-radius:0 6px 6px 6px;}
-.dropdown-submenu:hover>.dropdown-menu{display:block;}
-.dropdown-submenu>a:after{display:block;content:" ";float:right;width:0;height:0;border-color:transparent;border-style:solid;border-width:5px 0 5px 5px;border-left-color:#cccccc;margin-top:5px;margin-right:-10px;}
-.dropdown-submenu:hover>a:after{border-left-color:#ffffff;}
-.dropdown-submenu.pull-left{float:none;}.dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
+.navbar .twitter-typeahead .tt-dropdown-menu {
+  width: 360px;
+}
+
+.navbar .dragon-name {
+  color: rgb(153, 51, 1);
+  font-weight: bold;
+}
+
+.navbar .tt-is-under-cursor .dragon-name, .navbar .tt-is-under-cursor .dragon-rarity {
+  color: white;
+}
+
+
 </style>
 </head>
 <body>
@@ -50,12 +47,23 @@ iframe {
     <span class="navbar-brand">Dragon Story</span>
   </div>
 
-  <!-- Collect the nav links, forms, and other content for toggling -->
+  <!-- reload button -->
   <div class="collapse navbar-collapse navbar-right">
     <div class="navbar-form">
       <button type="submit" class="btn btn-default" data-role="reload">Reload</button>
     </div>
   </div>
+
+  <!-- search box -->
+  <div class="collapse navbar-collapse navbar-right">
+    <div class="navbar-form">
+      <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search" data-role="search-dragon">
+      </div>
+    </div>
+  </div>
+
+  <!-- dropdown -->
   <div class="collapse navbar-collapse navbar-right">
     <ul class="nav navbar-nav">
     <li class="dropdown">
@@ -65,13 +73,6 @@ iframe {
       </ul>
     </li>
   </div>
-  <div class="collapse navbar-collapse navbar-right">
-    <div class="navbar-form">
-      <div class="form-group">
-        <input type="text" class="form-control" placeholder="Search">
-      </div>
-    </form>
-  </div><!-- /.navbar-collapse -->
 </nav>
 
 <div id="new-dragon-notice" class="jumbotron flyover flyover-centered">
@@ -112,13 +113,10 @@ iframe {
     </div>
   </div>
 </div>
-
-<select id="select_opponent" style="display:none;"></select>
-<select id="select_opponent_level" style="display:none;"></select>
-<div style="display:none;"><div id="form_opponent"></div></div>
-<div id="content_scores" style="display:none;"></div>
 </body>
 <script>
+RARITY_DESC = [ '', 'Common', 'Rare', 'Super Rare', 'Ultra Rare'];
+
 function loadData(reload) {
   var ds = org.ellab.dragonstory;
 
@@ -145,6 +143,7 @@ function loadData(reload) {
 
     var typeCount = {};
     var typeArray = [];
+    var typeaheadArray = [];
 
     for (type in type_image_url) {
       typeArray.push(type);
@@ -154,6 +153,8 @@ function loadData(reload) {
 
     if (breeds && type_image_url) {
       for (dragonid in breeds) {
+        var dragon = breeds[dragonid];
+
         // build the type count
         (breeds[dragonid].types || []).forEach(function(type) {
           typeCount[type].count++;
@@ -168,6 +169,19 @@ function loadData(reload) {
           });
           addedDragonHTML += '</div></div>';
         }
+
+        // build the typeahead array
+        var typeaheadTypeHTML = '';
+        (dragon.types || []).forEach(function(typeaheadType) {
+          typeaheadTypeHTML += ' <img width="16" src="' + type_image_url[typeaheadType] + '"/> ';
+        });
+
+        typeaheadArray.push({
+          name: breeds[dragonid].name,
+          rarity: RARITY_DESC[breeds[dragonid].rarity],
+          types: typeaheadTypeHTML,
+          tokens: [ dragonid ]
+        });
       }
 
       // build the dragon dropdown menu
@@ -177,7 +191,7 @@ function loadData(reload) {
           ' (' + typeCount[type].count + ')</a><ul class="dropdown-menu">';
 
         typeCount[type].dragons.forEach(function(dragon) {
-          dropdownHTML += '<li><a href="#" data-dragon="' + dragon.dragonid + '">' +
+          dropdownHTML += '<li><a href="#" data-dragon="' + dragon.dragonid + '" class="dragon-name">' +
                           dragon.dragon.name +
                           ' <img width="16" src="' + type_image_url[type] + '"/> ';
           (dragon.dragon.types || []).forEach(function(othertype) {
@@ -193,6 +207,18 @@ function loadData(reload) {
         $('#dragon-count-dropdown').append(dropdownHTML);
       });
     }
+
+
+    $('[data-role="search-dragon"]').typeahead({
+      name: 'dragons',
+      local: typeaheadArray,
+      template: [
+        '<div class="row"><div class="col-md-5 dragon-name">{{name}}</div>' +
+        '<div class="col-md-3">{{{types}}}</div>' +
+        '<div class="col-md-4 dragon-rarity">{{rarity}}</div></div>'
+      ].join(''),
+      engine: Hogan
+    });
 
     $('#dragon-count').html(typeArray.length + ' Types, ' + Object.keys(breeds).length + ' Dragons');
     if (addedDragonHTML) {
