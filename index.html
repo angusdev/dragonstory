@@ -47,31 +47,41 @@ iframe {
     <span class="navbar-brand">Dragon Story</span>
   </div>
 
-  <!-- reload button -->
-  <div class="collapse navbar-collapse navbar-right">
-    <div class="navbar-form">
-      <button type="submit" class="btn btn-default" data-role="reload">Reload</button>
-    </div>
-  </div>
-
-  <!-- search box -->
-  <div class="collapse navbar-collapse navbar-right">
-    <div class="navbar-form">
-      <div class="form-group">
-        <input type="text" class="form-control" placeholder="Search" data-role="search-dragon">
-      </div>
-    </div>
-  </div>
-
-  <!-- dropdown -->
   <div class="collapse navbar-collapse navbar-right">
     <ul class="nav navbar-nav">
-    <li class="dropdown">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id='dragon-count'>Loading...</span> <b class="caret"></b></a>
-      <ul class="dropdown-menu" data-role="dragon-type-dropdown">
-        <li><a href="#">Loading...</a></li>
-      </ul>
-    </li>
+      <!-- Dragon Dropdown -->
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id='dragon-count'>Loading...</span> <b class="caret"></b></a>
+        <ul class="dropdown-menu" data-role="dragon-type-dropdown">
+          <li><a href="#">Loading...</a></li>
+        </ul>
+      </li>
+      <!-- Search Box -->
+      <li>
+        <div class="navbar-form">
+          <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search" data-role="search-dragon">
+          </div>
+        </div>
+      </li>
+      <!-- Reload Nutton -->
+      <li>
+        <div class="navbar-form">
+          <button type="submit" class="btn btn-default" data-role="reload">Reload</button>
+        </div>
+      </li>
+      <!-- Links -->
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links <b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="https://itunes.apple.com/app/dragon-story/id513474544" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i> iOS</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.teamlava.dragon" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i> Android</a></li>
+          <li class="divider"></li>
+          <li><a href="http://forums.storm8.com/forumdisplay.php?209-Dragon-Story" target="_blank"><i class="glyphicon glyphicon-comment"></i> Forum</a></li>
+          <li><a href="http://dragon-story.wikia.com/" target="_blank"><i class="glyphicon glyphicon-link"></i> Wikia</a></li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </nav>
 
