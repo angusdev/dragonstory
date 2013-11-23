@@ -87,9 +87,7 @@ iframe {
 
 <div id="new-dragon-notice" class="jumbotron flyover flyover-centered">
    <h2>New Dragon !!!</h2>
-   <p>
-      This is the text to show in the message.
-   </p>
+   <p></p>
    <button class="btn btn-primary" data-role="close">Dismiss</button>
 </div>
 
@@ -173,7 +171,7 @@ function loadData(reload) {
 
         // compare the added dragons
         if (oldbreeds && typeof oldbreeds[dragonid] === 'undefined') {
-          addedDragonHTML += '<div class="row"><div class="col-md-4">' + ds.capitalize(dragonid) + '</div><div class="col-md-8">';
+          addedDragonHTML += '<div class="row"><div class="col-md-4 col-sm-4">' + ds.capitalize(dragonid) + '</div><div class="col-md-8 col-sm-8">';
           (breeds[dragonid].types || []).forEach(function(type) {
             addedDragonHTML += '<img src="' + type_image_url[type] + '"/> ';
           });
