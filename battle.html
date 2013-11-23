@@ -25,11 +25,11 @@ td.lowerscore {
     Opponent Dragon
   </div>
   <div class="form-group">
-    <div class="btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battledragonprefix" data-for="#battle-dragon-list"></div>
+    <div class="btn-group btn-group-s" data-toggle="buttons" id="dragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="dragonprefix" data-for="#dragon-list"></div>
   </div>
   <div class="form-group">
     <span style="margin-left: 100px;">Select a dragon first</span>
-    <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="battledragonname" id="battle-dragon-list"></div>
+    <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="dragonname" id="dragon-list"></div>
   </div>
   <div class="form-group">
     <div class="row">
@@ -37,12 +37,12 @@ td.lowerscore {
         <span class="label label-default">Level</span>
       </div>
       <div class="col-sm-11 col-md-11">
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-level-btn-group" data-radio-name="battledragonlevel" id="battle-dragon-level"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-level-btn-group" data-radio-name="dragonlevel" id="dragon-level"></div>
       </div>
     </div>
   </div>
   <div class="form-group" style="margin-top:10px;">
-    <div id="battle-result" data-role="result"></div>
+    <div id="result" data-role="result"></div>
   </div>
 </div>
 <div id='status'>Loading...</div>
@@ -75,7 +75,7 @@ $(document).ready(function() {
 function onBattleDataChanged(data) {
   ds.clearDragonBtn();
   ds.clearLevelBtn();
-  $('#battle-result').html('');
+  $('#result').html('');
   $('#status').hide();
   $('.container').show();
 
@@ -90,9 +90,9 @@ function onBattleDataChanged(data) {
   ds.makeLevelBtn();
 
   // click the dragon or level
-  $(document).on('change', '#battle-dragon-list :radio, #battle-dragon-level :radio', function() {
-    var dragonid = $('#battle-dragon-list :checked').val();
-    var level = $('#battle-dragon-level :checked').val();
+  $(document).on('change', '#dragon-list :radio, #dragon-level :radio', function() {
+    var dragonid = $('#dragon-list :checked').val();
+    var level = $('#dragon-level :checked').val();
     if (dragonid && level) {
       // fill in the hidden element used by the function
       $('#select_opponent option').filter(function() { return this.textContent === breeds[dragonid].name }).prop('selected', true);
@@ -100,7 +100,7 @@ function onBattleDataChanged(data) {
       calculateScores();
 
       // show the hidden result, remove all inline style
-      $('#battle-result')
+      $('#result')
         .html($('#content_scores').html())
         .find('table')
           .attr('style', '')
@@ -110,18 +110,18 @@ function onBattleDataChanged(data) {
     }
   });
 
-  $('#battle-result').on('click', 'td', function() {
+  $('#result').on('click', 'td', function() {
     var savedThis = this;
     var $savedThis = $(savedThis);
     if ($savedThis.hasClass('success')) {
-      $('#battle-result td').removeClass('lowerscore');
-      $('#battle-result tr').show();
+      $('#result td').removeClass('lowerscore');
+      $('#result tr').show();
 
       $savedThis.removeClass('success');
     }
     else {
       var rate = parseInt($savedThis.text(), 10);
-      $('#battle-result td').each(function() {
+      $('#result td').each(function() {
         var $this = $(this).removeClass('success');
 
         var tdrate = parseInt($this.text(), 10);
@@ -134,10 +134,10 @@ function onBattleDataChanged(data) {
       });
 
       // hide the row that all are 'lowerscore'
-      $('#battle-result tr').filter(function() {
+      $('#result tr').filter(function() {
         return $(this).find('td:not(.lowerscore)').length === 1;
       }).hide();
-      $('#battle-result tr').filter(function() {
+      $('#result tr').filter(function() {
         return $(this).find('td:not(.lowerscore)').length > 1;
       }).show();
 
@@ -147,7 +147,7 @@ function onBattleDataChanged(data) {
 }
 
 function onGlobalSelectDragon(e, dragonid, dragon) {
-  ds.selectDragon('#battle-prefix-list', dragonid, dragon.name);
+  ds.selectDragon('#dragon-prefix-list', dragonid, dragon.name);
 }
 
 </script>
