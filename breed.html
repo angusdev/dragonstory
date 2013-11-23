@@ -27,7 +27,7 @@ backupJqueryReady = null;
   </div>
   <div class="form-group">
     Dragon 1
-    <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-prefix-btn-group" data-radio-name="breeddragonprefix1" data-for="#breed-dragon-list-1"></div>
+    <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list1" data-role="dragon-prefix-btn-group" data-radio-name="breeddragonprefix1" data-for="#breed-dragon-list-1"></div>
   </div>
   <div class="form-group">
     <span style="margin-left: 100px;">Select a dragon first</span>
@@ -35,7 +35,7 @@ backupJqueryReady = null;
   </div>
   <div class="form-group">
     Dragon 2
-    <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-prefix-btn-group" data-radio-name="breeddragonprefix2" data-for="#breed-dragon-list-2"></div>
+    <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list2" data-role="dragon-prefix-btn-group" data-radio-name="breeddragonprefix2" data-for="#breed-dragon-list-2"></div>
   </div>
   <div class="form-group">
     <span style="margin-left: 100px;">Select a dragon first</span>
@@ -60,6 +60,15 @@ backupJqueryReady = null;
 </div>
 </body>
 <script>
+var ds = org.ellab.dragonstory;
+
+// what is the target prefix list on global select dragon event, initial is 1,
+// onGlobalSelectDragonPrefix = 1 + onSearchEvent => onGlobalSelectDragonPrefix = 2
+// onGlobalSelectDragonPrefix = 2 + onSearchEvent => onGlobalSelectDragonPrefix = 1
+// click event on list 1 => onGlobalSelectDragonPrefix = 2
+// click event on list 2 => onGlobalSelectDragonPrefix = 1
+var onGlobalSelectDragonPrefix = 1;
+
 $(document).ready(function() {
   $(document.body).bind('ellabBreedDataBeforeLoad', function(e, data) {
     $('#status').show();
@@ -70,12 +79,12 @@ $(document).ready(function() {
     onBreedDataChanged(data);
   });
 
+  $(document.body).bind('ellab.globalselectdragon', onGlobalSelectDragon);
+
   window.parent.$('body').trigger('ellabPageReady', [ 'breed' ]);
 });
 
 function onBreedDataChanged(data) {
-  var ds = org.ellab.dragonstory;
-
   ds.clearDragonBtn();
   ds.clearLevelBtn();
   $('#breed-result').html('');
@@ -92,8 +101,15 @@ function onBreedDataChanged(data) {
   ds.makeDragonBtn();
   ds.makeLevelBtn();
 
-  // click the dragon or level
-  $(document).on('change', '#breed-dragon-list-1 :radio, #breed-dragon-list-2 :radio', function() {
+  $(document).on('click', '#breed-dragon-list-1 :radio', function() {
+    onGlobalSelectDragonPrefix = 2;
+  });
+
+  $(document).on('click', '#breed-dragon-list-2 :radio', function() {
+    onGlobalSelectDragonPrefix = 1;
+  });
+
+  $(document).on('change', '#breed-dragon-list-1 :radio, #breed-dragon-list-2 :radio', function(e) {
     var dragonid1 = $('#breed-dragon-list-1 :checked').val();
     var dragonid2 = $('#breed-dragon-list-2 :checked').val();
     if (dragonid1 && dragonid2) {
@@ -113,5 +129,10 @@ function onBreedDataChanged(data) {
     }
   });
 }
+
+function onGlobalSelectDragon(e, dragonid, dragon) {
+  ds.selectDragon('#breed-prefix-list' + onGlobalSelectDragonPrefix, dragonid, dragon.name);
+}
+
 </script>
 </html>

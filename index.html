@@ -68,7 +68,7 @@ iframe {
     <ul class="nav navbar-nav">
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id='dragon-count'>Loading...</span> <b class="caret"></b></a>
-      <ul class="dropdown-menu" id="dragon-count-dropdown">
+      <ul class="dropdown-menu" data-role="dragon-type-dropdown">
         <li><a href="#">Loading...</a></li>
       </ul>
     </li>
@@ -139,7 +139,7 @@ function loadData(reload) {
     // I know, I know this is dangerous
     eval(breed);
 
-    $('#dragon-count-dropdown').empty();
+    $('[data-role="dragon-type-dropdown"]').empty();
 
     var typeCount = {};
     var typeArray = [];
@@ -177,6 +177,8 @@ function loadData(reload) {
         });
 
         typeaheadArray.push({
+          dragonid: dragonid,
+          dragon: dragon,
           name: breeds[dragonid].name,
           rarity: RARITY_DESC[breeds[dragonid].rarity],
           types: typeaheadTypeHTML,
@@ -191,7 +193,7 @@ function loadData(reload) {
           ' (' + typeCount[type].count + ')</a><ul class="dropdown-menu">';
 
         typeCount[type].dragons.forEach(function(dragon) {
-          dropdownHTML += '<li><a href="#" data-dragon="' + dragon.dragonid + '" class="dragon-name">' +
+          dropdownHTML += '<li><a href="#" data-dragonid="' + dragon.dragonid + '" class="dragon-name">' +
                           dragon.dragon.name +
                           ' <img width="16" src="' + type_image_url[type] + '"/> ';
           (dragon.dragon.types || []).forEach(function(othertype) {
@@ -204,12 +206,12 @@ function loadData(reload) {
 
         dropdownHTML += '</ul></li>';
 
-        $('#dragon-count-dropdown').append(dropdownHTML);
+        $('[data-role="dragon-type-dropdown"]').append(dropdownHTML);
       });
     }
 
 
-    $('[data-role="search-dragon"]').typeahead({
+    $('[data-role="search-dragon"]').typeahead('destroy').typeahead({
       name: 'dragons',
       local: typeaheadArray,
       template: [
@@ -217,7 +219,8 @@ function loadData(reload) {
         '<div class="col-md-3">{{{types}}}</div>' +
         '<div class="col-md-4 dragon-rarity">{{rarity}}</div></div>'
       ].join(''),
-      engine: Hogan
+      engine: Hogan,
+      limit: 10
     });
 
     $('#dragon-count').html(typeArray.length + ' Types, ' + Object.keys(breeds).length + ' Dragons');
@@ -259,6 +262,19 @@ $(document).ready(function() {
 
   $(document).on('click', '.jumbotron [data-role="close"]', function() {
     $(this).closest('.jumbotron').removeClass('in');
+  });
+
+  $(document).on('click', '[data-role="dragon-type-dropdown"] a[data-dragonid]', function(e) {
+    var dragonid = $(e.target).data('dragonid');
+    $('.tab-content .tab-pane.active iframe').each(function() {
+      this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ dragonid, breeds[dragonid] ]);
+    });
+  });
+
+  $(document).on('typeahead:selected', '[data-role="search-dragon"]', function(e, datum) {
+    $('.tab-content .tab-pane.active iframe').each(function() {
+      this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ datum.dragonid, datum.dragon ]);
+    });
   });
 
   $(document.body).bind('ellabPageReady', function(e, page) {
