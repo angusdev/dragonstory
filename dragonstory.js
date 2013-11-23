@@ -44,18 +44,26 @@ org.ellab.dragonstory.makeDragonBtn = function() {
     if (breeds) {
       var $btngroup = $(this).closest('.btn-group');
       var prefix = $btngroup.find(':checked').val();
-      var $target = $($btngroup.data('for')).empty();
-      $target.closest('.form-group').find('span').remove();
-      for (var dragonid in breeds) {
-        var dragon = breeds[dragonid];
-        if (dragon.name && dragon.name.length > 0 && dragon.name.charAt(0).toUpperCase() === prefix) {
-          $target.append('<label class="btn btn-default"><input type="radio" name="' + $target.data('radio-name') + '" value="' + dragonid + '">' + dragon.name + '</label>');
+      if (prefix) {
+        var $target = $($btngroup.data('for')).empty();
+        $target.closest('.form-group').find('span').remove();
+        for (var dragonid in breeds) {
+          var dragon = breeds[dragonid];
+          if (dragon.name && dragon.name.length > 0 && dragon.name.charAt(0).toUpperCase() === prefix) {
+            $target.append('<label class="btn btn-default"><input type="radio" name="' + $target.data('radio-name') + '" value="' + dragonid + '">' + dragon.name + '</label>');
+          }
         }
-      }
 
-      $('[data-role="result"]').empty();
+        $('[data-role="result"]').empty();
+      }
     }
   });
+};
+
+org.ellab.dragonstory.selectDragon = function(btngroup, dragonid, dragonname) {
+  var $btngroup = $(btngroup);
+  $btngroup.find(':radio[value="' + dragonname.charAt().toUpperCase() + '"]').first().click();
+  $($btngroup.data('for')).find(':radio[value="' + dragonid + '"]').first().click();
 };
 
 org.ellab.dragonstory.clearLevelBtn = function() {
