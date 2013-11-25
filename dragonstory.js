@@ -3,6 +3,8 @@
 (function(){
 'use strict';
 
+var RARITY_DESC = [ '', 'Common', 'Rare', 'Super Rare', 'Ultra Rare'];
+
 function registerNS(ns) {
   var nsParts = ns.split('.');
   var root = window;
@@ -17,6 +19,8 @@ function registerNS(ns) {
 
 registerNS("org.ellab.dragonstory");
 
+var ds = org.ellab.dragonstory;
+
 var BREED_DATA_VERSION = 1;
 var BATTLE_DATA_VERSION = 1;
 
@@ -29,6 +33,29 @@ org.ellab.dragonstory.capitalize = function(s) {
   }
 };
 
+org.ellab.dragonstory.getRarityDesc = function(r) {
+  return RARITY_DESC[r];
+};
+
+org.ellab.dragonstory.getTypeHTML = function(types, width) {
+  var html = '';
+
+  (types || []).forEach(function(type) {
+    html += ' <img' + (width?' width="' + width + '"':'') + ' src="' + type_image_url[type] + '"/> ';
+  });
+
+  return html;
+};
+
+org.ellab.dragonstory.getIncubationText = function(incubationText) {
+  return incubationText.split('_').reverse().slice(1).reverse().join(' ');
+};
+
+org.ellab.dragonstory.getIncubationSeconds = function(incubationText) {
+  var splitted = incubationText.split('_');
+  return parseInt(splitted[0], 10) * (splitted[1]==='seconds'?1:3600);
+};
+
 org.ellab.dragonstory.clearDragonBtn = function() {
   $('[data-role="dragon-prefix-btn-group"]').empty();
   $('[data-role="dragon-name-btn-group"]').empty();
@@ -36,11 +63,25 @@ org.ellab.dragonstory.clearDragonBtn = function() {
 
 org.ellab.dragonstory.makeDragonBtn = function() {
   var $btngroup = $('[data-role="dragon-prefix-btn-group"]');
+
+  // add "All" button
+  $btngroup.each(function() {
+    var $this = $(this);
+    if ($this.data('hasall')) {
+      $this.append('<label class="btn btn-default active"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="*">All</label>');
+    }
+  });
   for (var i=0 ; i<26 ; i++) {
     var val = String.fromCharCode(65 + i);
     $btngroup.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + val + '">' + val  + '</label>');
   }
-  $btngroup.on('change', ':radio', function() {
+
+  // select the all button
+  $btngroup.find(':radio[value="*"]').prop('checked', true);
+
+  $btngroup.filter(function() {
+    return $(this).closest('.btn-group').data('for')?true:false;
+  }).on('change', ':radio', function() {
     if (breeds) {
       var $btngroup = $(this).closest('.btn-group');
       var prefix = $btngroup.find(':checked').val();
@@ -58,6 +99,8 @@ org.ellab.dragonstory.makeDragonBtn = function() {
       }
     }
   });
+
+  return $btngroup;
 };
 
 org.ellab.dragonstory.selectDragon = function(btngroup, dragonid, dragonname) {
@@ -201,6 +244,103 @@ org.ellab.dragonstory.loadBattleData = function () {
   }
 
   return deferred;
+};
+
+org.ellab.dragonstory.buildMyDragon = function(containerSelector) {
+  function makeSaveString() {
+    var saved = {};
+
+    $(containerSelector).find('.selected').each(function() {
+      var $this = $(this);
+      var level = parseInt($this.data('level'), 10);
+      if (level) {
+        var dragonid = $this.parent('tr').data('dragonid');
+        saved[dragonid] = (saved[dragonid] || 0) + (1 << (level - 1));
+      }
+    });
+
+    return JSON.stringify(saved);
+  }
+
+  var setting = localStorage?localStorage.getItem('ellab-dragonstory-mydragon'):null;
+  if (setting) {
+    try {
+      setting = JSON.parse(setting);
+    }
+    catch (err) {
+      setting = {};
+    }
+  }
+  setting = setting || {};
+
+  var tbodyHTML = '';
+  var theadHTML = '';
+
+  for (var dragonid in breeds) {
+    var dragon = breeds[dragonid];
+    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.name + '"><td>' + dragon.name +
+                 '</td><td>' + ds.getTypeHTML(dragon.types, 16) +
+                 '</td><td data-sort-value="' + dragon.rarity + '">' + ds.getRarityDesc(dragon.rarity) +
+                 '</td><td data-sort-value="' + ds.getIncubationSeconds(dragon.incubation) + '">' + ds.getIncubationText(dragon.incubation) +
+                 '</td>';
+
+    for (var i=0 ; i<=10 ; i++) {
+      if (i === 0) {
+        // selected if setting[dragonid] is undefined or === 0
+        tbodyHTML += '<td data-level="0"' + (setting[dragonid]?'':' class="selected"') + '></td>';
+      }
+      else {
+        var selected = setting[dragonid] & (1 << (i-1));
+        tbodyHTML += '<td data-level="' + i + '"' + (selected?' class="selected"':'') + '>' + i + '</td>';
+      }
+    }
+
+    tbodyHTML += '</tr>';
+  }
+
+
+  theadHTML = '<th>Dragon</th><th>Types</th><th>Rarity</th><th>Incubation</th>';
+  for (var thi=0 ; thi<=10 ; thi++) {
+    theadHTML += '<th>' + thi + '</th>';
+  }
+
+  var html = '<table class="table table-striped table-condensed table-bordered tablesorter-blue tablesorter-bootstrap">' +
+             '<thead><tr>' + theadHTML + '</tr></thead><tbody>' + tbodyHTML + '</tbody></table>';
+  theadHTML = null;
+  tbodyHTML = null;
+
+  $(containerSelector).html(html).find('table').tablesorter({
+    theme: 'bootstrap',
+    textExtraction: {
+      2: function(node, table, cellIndex) { return parseInt(node.getAttribute('data-sort-value'), 10); },
+      3: function(node, table, cellIndex) { return parseInt(node.getAttribute('data-sort-value'), 10); }
+    }
+  });
+
+  $(containerSelector).on('click', '.tablesorter tr td:nth-child(n+5)', function() {
+    var $this = $(this);
+    if ($this.data('level') === 0) {
+      $this.addClass('selected');
+
+      // clear all other level
+      $this.parent().find('[data-level!="0"].selected').removeClass('selected');
+    }
+    else {
+      $this.toggleClass('selected');
+
+      if ($this.parent().find('[data-level!="0"].selected').length) {
+        // at least one selected
+        $this.parent().find('[data-level="0"]').removeClass('selected');
+      }
+      else {
+        // no selected
+        $this.parent().find('[data-level="0"]').addClass('selected');
+      }
+    }
+
+    var saveString = makeSaveString();
+    localStorage.setItem('ellab-dragonstory-mydragon', saveString);
+  });
 };
 
 })();

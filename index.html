@@ -3,14 +3,17 @@
 <head>
 <meta charset="utf-8">
 <title>Dragon Story</title>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="jquery.xdomainajax.ellab-1.0.js"></script>
-<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-<script src="http://cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<script src="//cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
 <script src="//cdn.jsdelivr.net/hogan.js/2.0.0/hogan.common.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
 <script src="dragonstory.js"></script>
-<link rel="stylesheet" type="text/css" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="bootstrap-more.css">
+<lin1k rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/css/theme.blue.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/css/theme.bootstrap.css">
 <style>
 .container {
   width: 100%;
@@ -38,6 +41,27 @@ iframe {
   color: white;
 }
 
+.navbar .glyphicon {
+  margin-right:10px;
+}
+
+#mydragoncontainer .tablesorter th:nth-child(n+5) .tablesorter-header-inner {
+  text-align: center;
+  padding: 4px;
+}
+
+#mydragoncontainer .tablesorter td:nth-child(n+5) {
+  text-align: center;
+  color: #aaa;
+}
+
+#mydragoncontainer .tablesorter [data-level="0"].selected {
+  background-color: #aaa;
+}
+
+#mydragoncontainer .tablesorter .selected {
+  background-color: #cfb;
+}
 
 </style>
 </head>
@@ -70,15 +94,17 @@ iframe {
           <button type="submit" class="btn btn-default" data-role="reload">Reload</button>
         </div>
       </li>
-      <!-- Links -->
+      <!-- Tools -->
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links <b class="caret"></b></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-cog"></i>Tools <b class="caret"></b></a>
         <ul class="dropdown-menu">
-          <li><a href="https://itunes.apple.com/app/dragon-story/id513474544" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i> iOS</a></li>
-          <li><a href="https://play.google.com/store/apps/details?id=com.teamlava.dragon" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i> Android</a></li>
+          <li><a href="#" data-role="setmydragon"><i class="glyphicon glyphicon-star"></i>My Dragons</a></li>
           <li class="divider"></li>
-          <li><a href="http://forums.storm8.com/forumdisplay.php?209-Dragon-Story" target="_blank"><i class="glyphicon glyphicon-comment"></i> Forum</a></li>
-          <li><a href="http://dragon-story.wikia.com/" target="_blank"><i class="glyphicon glyphicon-link"></i> Wikia</a></li>
+          <li><a href="https://itunes.apple.com/app/dragon-story/id513474544" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i>iOS App</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.teamlava.dragon" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i>Android App</a></li>
+          <li class="divider"></li>
+          <li><a href="http://forums.storm8.com/forumdisplay.php?209-Dragon-Story" target="_blank"><i class="glyphicon glyphicon-comment"></i>Forum</a></li>
+          <li><a href="http://dragon-story.wikia.com/" target="_blank"><i class="glyphicon glyphicon-link"></i>Wikia</a></li>
         </ul>
       </li>
     </ul>
@@ -96,6 +122,7 @@ iframe {
     <li class="active"><a href="#breedtab" data-toggle="tab">Breeding</a></li>
     <li><a href="#parenttab" data-toggle="tab">Parents</a></li>
     <li><a href="#battletab" data-toggle="tab">Battle Arena</a></li>
+    <li><a href="#mydragontab" data-toggle="tab">My Dragons</a></li>
   </ul>
 
   <div class="tab-content">
@@ -107,6 +134,13 @@ iframe {
     </div>
     <div class="tab-pane" id="battletab">
       <iframe src="battle.html"></iframe>
+    </div>
+    <div class="tab-pane" id="mydragontab">
+      <div class="form-group"></div>
+      <div class="form-group">
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="mydragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="mydragonprefix" data-hasall="true"></div>
+      </div>
+      <div id="mydragoncontainer"></div>
     </div>
   </div>
 
@@ -123,11 +157,9 @@ iframe {
 </div>
 </body>
 <script>
-RARITY_DESC = [ '', 'Common', 'Rare', 'Super Rare', 'Ultra Rare'];
+var ds = org.ellab.dragonstory;
 
 function loadData(reload) {
-  var ds = org.ellab.dragonstory;
-
   $('#dragon-count').html('Loading...');
 
   $('.tab-content iframe').each(function(){
@@ -188,7 +220,7 @@ function loadData(reload) {
           dragonid: dragonid,
           dragon: dragon,
           name: breeds[dragonid].name,
-          rarity: RARITY_DESC[breeds[dragonid].rarity],
+          rarity: ds.getRarityDesc([breeds[dragonid].rarity]),
           types: typeaheadTypeHTML,
           tokens: [ dragonid ]
         });
@@ -236,6 +268,27 @@ function loadData(reload) {
       $('#new-dragon-notice').addClass('in').find('> p').html(addedDragonHTML);
     }
 
+    // finish decorating the navbar
+
+    ds.makeDragonBtn();
+
+    ds.buildMyDragon('#mydragoncontainer', '#mydragonsetting');
+    $('#mydragon-prefix-list').on('change', ':radio', function() {
+      var prefix = $(this).closest('.btn-group').find(':checked').val();
+      if (prefix) {
+        $('#mydragoncontainer tbody tr').each(function() {
+          var $this = $(this);
+          var dragonName = $this.data('dragonname');
+          if (dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase())) {
+            $this.show();
+          }
+          else {
+            $this.hide();
+          }
+        });
+      }
+    });
+
     //breeds = null;
     //type_image_url = null;
 
@@ -245,6 +298,29 @@ function loadData(reload) {
         .trigger('ellabBattleDataChanged', [ battle ] );
     });
   });
+}
+
+function setMyDragon() {
+  if (!localStorage) {
+    alert("Oops! Your browser doesn't support LocalStorage");
+    return;
+  }
+
+  var setting = localStorage.getItem('ellab-dragonstory-mydragon') || '';
+  var newsetting = prompt("Input the new dragon setting, please backup your current setting before", setting);
+  if (newsetting) {
+    try {
+      var newobj = JSON.parse(newsetting);
+      if (confirm('Your new setting consists of ' + Object.keys(newobj).length + ' dragons,\nare you sure to apply?')) {
+        localStorage.setItem('ellab-dragonstory-mydragon', newsetting);
+        ds.buildMyDragon('#mydragoncontainer');
+      }
+    }
+    catch (err) {
+      console.log(err);
+      alert('The setting is not valid, please try again.');
+    }
+  }
 }
 
 var breedReady = false;
@@ -266,6 +342,11 @@ $(document).ready(function() {
 
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
+  });
+
+  $('[data-role="setmydragon"]').click(function(e) {
+    e.stopPropagation();
+    setMyDragon();
   });
 
   $(document).on('click', '.jumbotron [data-role="close"]', function() {
