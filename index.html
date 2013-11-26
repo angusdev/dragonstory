@@ -24,6 +24,14 @@ iframe {
   overflow: hidden;
 }
 
+/* make it invisible */
+iframe[data-role=libiframe] {
+ position:absolute;
+ left:-1000px;
+ width:1px;
+ height:1px;
+}
+
 .navbar .twitter-typeahead .tt-dropdown-menu {
   width: 360px;
 }
@@ -132,7 +140,32 @@ iframe {
       <iframe src="parent.html"></iframe>
     </div>
     <div class="tab-pane" id="battletab">
-      <iframe src="battle.html"></iframe>
+      <iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>
+      <div class="form-group">
+      </div>
+      <div class="form-group">
+        Opponent Dragon
+      </div>
+      <div class="form-group">
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battleprefix" data-for="#battle-list"></div>
+      </div>
+      <div class="form-group">
+        <span style="margin-left: 100px;">Select a dragon first</span>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="dragonname" id="battle-list"></div>
+      </div>
+      <div class="form-group">
+        <div class="row">
+          <div class="col-sm-1 col-md-1">
+            <span class="label label-default">Level</span>
+          </div>
+          <div class="col-sm-11 col-md-11">
+            <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-level-btn-group" data-radio-name="dragonlevel" id="battle-level"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <div id="battle-result"></div>
+      </div>
     </div>
     <div class="tab-pane" id="mydragontab">
       <div class="form-group"></div>
@@ -295,6 +328,7 @@ function loadData(reload) {
     ds.clearLevelBtn();
 
     ds.makeDragonBtn();
+    ds.makeLevelBtn();
 
     ds.buildMyDragon(true, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
 
@@ -389,7 +423,7 @@ $(document).ready(function() {
   }
   else {
     window.setInterval(function() {
-      $('.tab-content iframe').each(function() {
+      $('.tab-content iframe[data-role!="libiframe"]').each(function() {
         var h = $(this).contents().find(".container").height();
         $(this).height(h);
       });
@@ -406,15 +440,18 @@ $(document).ready(function() {
     window.location.hash = e.target.hash;
   })
 
+  // nav bar reload data
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
   });
 
+  // set my dragon
   $('[data-role="setmydragon"]').click(function(e) {
     e.stopPropagation();
     onSetMyDragon();
   });
 
+  // save my dragon
   $('#input-mydragon [data-role="save"]').click(function(e) {
     e.stopPropagation();
     onSetMyDragonSave();
@@ -439,6 +476,22 @@ $(document).ready(function() {
     $('.tab-content .tab-pane.active iframe').each(function() {
       this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ datum.dragonid, datum.dragon ]);
     });
+  });
+
+  // click battle dragon or level
+  $(document).on('change', '#battle-list :radio, #battle-level :radio', function() {
+    var dragonid = $('#battle-list :checked').val();
+    var level = $('#battle-level :checked').val();
+    if (dragonid && level) {
+      $('#battle-result').empty();
+      document.getElementById('battlelib').contentWindow.$('body').trigger('ellab.battle.request', [ dragonid, level ]);
+    }
+  });
+
+  $(document.body).bind('ellab.battle.response', function(e, html) {
+    if (html) {
+      $('#battle-result').html(html);
+    }
   });
 
   $(document.body).bind('ellabPageReady', function(e, page) {
