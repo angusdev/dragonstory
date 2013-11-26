@@ -24,10 +24,6 @@ iframe {
   overflow: hidden;
 }
 
-.navbar [data-role="search-dragon"] {
-  width: 320px;
-}
-
 .navbar .twitter-typeahead .tt-dropdown-menu {
   width: 360px;
 }
@@ -63,6 +59,9 @@ iframe {
   background-color: #cfb;
 }
 
+#input-mydragon textarea {
+  width: 100%;
+}
 </style>
 </head>
 <body>
@@ -140,6 +139,7 @@ iframe {
       <div class="form-group">
         <div class="btn-group btn-group-s" data-toggle="buttons" id="mydragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="mydragonprefix" data-hasall="true"></div>
       </div>
+      <div class="form-group" data-role="dragon-count-text"></div>
       <div id="mydragoncontainer"></div>
     </div>
   </div>
@@ -155,6 +155,27 @@ iframe {
     </div>
   </div>
 </div>
+
+<div class="modal fade" id="input-mydragon">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">My Dragon Setting</h4>
+      </div>
+      <div class="modal-body">
+        <h5>Current Settings <span data-role="oldsettingcount"></span></h5>
+        <textarea data-role="oldsetting" rows="4" readonly="true"></textarea>
+        <h5>New Settings <span data-role="newsettingcount"></span></h5>
+        <textarea data-role="newsetting" rows="4"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-role="save">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- #input-mydragon -->
 </body>
 <script>
 var ds = org.ellab.dragonstory;
@@ -255,9 +276,9 @@ function loadData(reload) {
       name: 'dragons',
       local: typeaheadArray,
       template: [
-        '<div class="row"><div class="col-md-5 dragon-name">{{name}}</div>' +
-        '<div class="col-md-3">{{{types}}}</div>' +
-        '<div class="col-md-4 dragon-rarity">{{rarity}}</div></div>'
+        '<div class="row"><div class="col-md-5 col-xs-5 dragon-name">{{name}}</div>' +
+        '<div class="col-md-3 col-xs-3">{{{types}}}</div>' +
+        '<div class="col-md-4 col-xs-4 dragon-rarity">{{rarity}}</div></div>'
       ].join(''),
       engine: Hogan,
       limit: 10
@@ -270,9 +291,14 @@ function loadData(reload) {
 
     // finish decorating the navbar
 
+    ds.clearDragonBtn();
+    ds.clearLevelBtn();
+
     ds.makeDragonBtn();
 
-    ds.buildMyDragon('#mydragoncontainer', '#mydragonsetting');
+    ds.buildMyDragon(true, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
+
+    // filter mydragon
     $('#mydragon-prefix-list').on('change', ':radio', function() {
       var prefix = $(this).closest('.btn-group').find(':checked').val();
       if (prefix) {
@@ -300,25 +326,55 @@ function loadData(reload) {
   });
 }
 
-function setMyDragon() {
+function onSetMyDragon() {
   if (!localStorage) {
     alert("Oops! Your browser doesn't support LocalStorage");
     return;
   }
 
   var setting = localStorage.getItem('ellab-dragonstory-mydragon') || '';
-  var newsetting = prompt("Input the new dragon setting, please backup your current setting before", setting);
+  var count = 0;
+  try {
+    count = Object.keys(JSON.parse(setting)).length;
+    $('#input-mydragon [data-role="oldsettingcount"]').html(' (' + count + ' Dragon' + (count>1?'s':'') + ')');
+    $('#input-mydragon [data-role="oldsetting"]').val(setting);
+  }
+  catch (err) {
+  }
+
+  $('#input-mydragon').modal('show').find('[data-role="newsetting"]').focus();
+}
+
+function onSetMyDragonSave() {
+  var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
+
   if (newsetting) {
+    var count = 0;
     try {
-      var newobj = JSON.parse(newsetting);
-      if (confirm('Your new setting consists of ' + Object.keys(newobj).length + ' dragons,\nare you sure to apply?')) {
+      count = Object.keys(JSON.parse(newsetting)).length;
+      if (confirm('Your new setting consists of ' + count + ' dragons,\nare you sure to apply?')) {
+        $('#input-mydragon').modal('hide');
         localStorage.setItem('ellab-dragonstory-mydragon', newsetting);
-        ds.buildMyDragon('#mydragoncontainer');
+        ds.buildMyDragon(false, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
+        // switch to mydragon tab
+        $('a[href="#mydragontab"][data-toggle="tab"]').click();
       }
     }
     catch (err) {
-      console.log(err);
       alert('The setting is not valid, please try again.');
+    }
+  }
+}
+
+function onSetMyDragonChange() {
+  var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
+
+  if (newsetting) {
+    var count = 0;
+    try {
+      count = Object.keys(JSON.parse(newsetting)).length;
+      $('#input-mydragon [data-role="newsettingcount"]').html(' (' + count + ' Dragon' + (count>1?'s':'') + ')');    }
+    catch (err) {
     }
   }
 }
@@ -340,13 +396,32 @@ $(document).ready(function() {
     }, 100);
   }
 
+  // switch to the tab in hash
+  var hash = window.location.hash;
+  if (hash) {
+    $('.nav-tabs a[href=' + hash + '][data-toggle="tab"]').click();
+  }
+  // Change hash for page-reload
+  $('.nav-tabs').on('click', '[data-toggle="tab"]', function (e) {
+    window.location.hash = e.target.hash;
+  })
+
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
   });
 
   $('[data-role="setmydragon"]').click(function(e) {
     e.stopPropagation();
-    setMyDragon();
+    onSetMyDragon();
+  });
+
+  $('#input-mydragon [data-role="save"]').click(function(e) {
+    e.stopPropagation();
+    onSetMyDragonSave();
+  });
+
+  $('#input-mydragon [data-role="newsetting"]').bind('change', function(e) {
+    onSetMyDragonChange();
   });
 
   $(document).on('click', '.jumbotron [data-role="close"]', function() {

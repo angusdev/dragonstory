@@ -1,5 +1,5 @@
 /*jshint devel:true */
-/*global $,org,breeds */
+/*global $,org,breeds,type_image_url */
 (function(){
 'use strict';
 
@@ -246,7 +246,7 @@ org.ellab.dragonstory.loadBattleData = function () {
   return deferred;
 };
 
-org.ellab.dragonstory.buildMyDragon = function(containerSelector) {
+org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
   function makeSaveString() {
     var saved = {};
 
@@ -275,6 +275,8 @@ org.ellab.dragonstory.buildMyDragon = function(containerSelector) {
 
   var tbodyHTML = '';
   var theadHTML = '';
+  var dragonCount = 0;
+  var epicDragonCount = 0;
 
   for (var dragonid in breeds) {
     var dragon = breeds[dragonid];
@@ -283,6 +285,9 @@ org.ellab.dragonstory.buildMyDragon = function(containerSelector) {
                  '</td><td data-sort-value="' + dragon.rarity + '">' + ds.getRarityDesc(dragon.rarity) +
                  '</td><td data-sort-value="' + ds.getIncubationSeconds(dragon.incubation) + '">' + ds.getIncubationText(dragon.incubation) +
                  '</td>';
+
+    dragonCount += setting[dragonid]?1:0;
+    epicDragonCount += (setting[dragonid] & (1 << 9))?1:0;
 
     for (var i=0 ; i<=10 ; i++) {
       if (i === 0) {
@@ -317,30 +322,48 @@ org.ellab.dragonstory.buildMyDragon = function(containerSelector) {
     }
   });
 
-  $(containerSelector).on('click', '.tablesorter tr td:nth-child(n+5)', function() {
-    var $this = $(this);
-    if ($this.data('level') === 0) {
-      $this.addClass('selected');
-
-      // clear all other level
-      $this.parent().find('[data-level!="0"].selected').removeClass('selected');
+  if (dragonCountSelector) {
+    var dragonCountHTML = 'You have <b>' + dragonCount + '</b> Dragon' + (dragonCount > 1?'s':'');
+    if (epicDragonCount > 1) {
+      dragonCountHTML += ', <b>' + epicDragonCount + '</b> are Epic Dragons.';
+    }
+    else if (epicDragonCount === 1) {
+      dragonCountHTML += ', with <b>1</b> Epic Dragon.';
     }
     else {
-      $this.toggleClass('selected');
+      dragonCountHTML += '.';
+    }
+    $(dragonCountSelector).html(dragonCountHTML);
+  }
 
-      if ($this.parent().find('[data-level!="0"].selected').length) {
-        // at least one selected
-        $this.parent().find('[data-level="0"]').removeClass('selected');
+  if (init) {
+    // only bind click event in first time
+    $(containerSelector).on('click', '.tablesorter tr td:nth-child(n+5)', function() {
+      console.log('click');
+      var $this = $(this);
+      if ($this.data('level') === 0) {
+        $this.addClass('selected');
+
+        // clear all other level
+        $this.parent().find('[data-level!="0"].selected').removeClass('selected');
       }
       else {
-        // no selected
-        $this.parent().find('[data-level="0"]').addClass('selected');
-      }
-    }
+        $this.toggleClass('selected');
 
-    var saveString = makeSaveString();
-    localStorage.setItem('ellab-dragonstory-mydragon', saveString);
-  });
+        if ($this.parent().find('[data-level!="0"].selected').length) {
+          // at least one selected
+          $this.parent().find('[data-level="0"]').removeClass('selected');
+        }
+        else {
+          // no selected
+          $this.parent().find('[data-level="0"]').addClass('selected');
+        }
+      }
+
+      var saveString = makeSaveString();
+      localStorage.setItem('ellab-dragonstory-mydragon', saveString);
+    });
+  }
 };
 
 })();
