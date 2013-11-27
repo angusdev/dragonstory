@@ -188,7 +188,7 @@ iframe[data-role=libiframe] {
         <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="parentname" id="parent-list"></div>
       </div>
       <div class="form-group" style="margin-top:10px;">
-        <div id="parent-result" data-role="result"></div>
+        <div id="parent-result"></div>
       </div>
     </div>
     <div class="tab-pane" id="parenttab2">
@@ -287,6 +287,8 @@ iframe[data-role=libiframe] {
 </body>
 <script>
 var ds = org.ellab.dragonstory;
+
+var g_mydragon = new ds.MyDragon();
 
 function loadData(reload) {
   $('#dragon-count').html('Loading...');
@@ -440,15 +442,8 @@ function onSetMyDragon() {
     return;
   }
 
-  var setting = localStorage.getItem('ellab-dragonstory-mydragon') || '';
-  var count = 0;
-  try {
-    count = Object.keys(JSON.parse(setting)).length;
-    $('#input-mydragon [data-role="oldsettingcount"]').html(' (' + count + ' Dragon' + (count>1?'s':'') + ')');
-    $('#input-mydragon [data-role="oldsetting"]').val(setting);
-  }
-  catch (err) {
-  }
+  $('#input-mydragon [data-role="oldsettingcount"]').html(g_mydragon.dragonCountHTML?(' (' + g_mydragon.dragonCountHTML + ')'):'');
+  $('#input-mydragon [data-role="oldsetting"]').val(g_mydragon.json);
 
   $('#input-mydragon').modal('show').find('[data-role="newsetting"]').focus();
 }
@@ -457,12 +452,13 @@ function onSetMyDragonSave() {
   var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
 
   if (newsetting) {
-    var count = 0;
     try {
-      count = Object.keys(JSON.parse(newsetting)).length;
-      if (confirm('Your new setting consists of ' + count + ' dragons,\nare you sure to apply?')) {
+      // create a tmp obj to count
+      var tmpmydragon = new ds.MyDragon(newsetting);
+      if (confirm('Your new setting consists of ' + tmpmydragon.dragonCount + ' dragons,\nare you sure to apply?')) {
         $('#input-mydragon').modal('hide');
-        localStorage.setItem('ellab-dragonstory-mydragon', newsetting);
+        g_mydragon.set(newsetting);
+        $('#input-mydragon [data-role="newsetting"]').val('');
         ds.buildMyDragon(false, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
         // switch to mydragon tab
         $('a[href="#mydragontab"][data-toggle="tab"]').click();

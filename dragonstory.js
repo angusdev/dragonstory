@@ -1,5 +1,5 @@
 /*jshint devel:true */
-/*global $,org,breeds,type_image_url */
+/*global $,org,breeds,type_image_url,g_mydragon */
 (function(){
 'use strict';
 
@@ -23,6 +23,7 @@ var ds = org.ellab.dragonstory;
 
 var BREED_DATA_VERSION = 1;
 var BATTLE_DATA_VERSION = 1;
+var MYDRAGON_DATA_VERSION = 1;
 
 org.ellab.dragonstory.capitalize = function(s) {
   if (typeof s === 'string' && s.length > 0) {
@@ -246,6 +247,94 @@ org.ellab.dragonstory.loadBattleData = function () {
   return deferred;
 };
 
+org.ellab.dragonstory.MyDragon = function(json) {
+  this.KEY = 'ellab-dragonstory-mydragon';
+  this.mydragon = {};
+  this.json = '';
+  this.dragonCount = 0;
+  this.epicDragonCount = 0;
+  this.dragonCountHTML = '';
+
+  if (json) {
+    // from input, throw exception if parse fail
+    this.mydragon  = JSON.parse(json);
+    this.json = this.mydragon?JSON.stringify(this.mydragon):'';
+    this.onChange();
+  }
+  else {
+    // read from localStorage
+    var stored = localStorage?localStorage.getItem(this.KEY):null;
+    if (stored) {
+      try {
+        stored = JSON.parse(stored);
+        if (stored.version !== MYDRAGON_DATA_VERSION) {
+          stored = null;
+        }
+      }
+      catch (ex) {
+        stored = null;
+      }
+    }
+
+    this.mydragon = stored?stored.mydragon:null;
+    this.json = this.mydragon?JSON.stringify(this.mydragon):'';
+    this.onChange();
+  }
+};
+
+org.ellab.dragonstory.MyDragon.prototype.set = function(dragons) {
+  var json = '';
+  var mydragon = null;
+  if (typeof dragons === 'string') {
+    try {
+      mydragon = JSON.parse(dragons);
+      json = dragons;
+    }
+    catch (err) {
+      return false;
+    }
+  }
+  else {
+    mydragon = dragons;
+    json = JSON.stringify(dragons);
+  }
+
+  this.mydragon = mydragon;
+  this.json = json;
+
+  if (localStorage) {
+    localStorage.setItem(this.KEY, JSON.stringify({ version: MYDRAGON_DATA_VERSION, mydragon: mydragon }));
+  }
+
+  this.onChange();
+
+  return true;
+};
+
+org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
+  this.dragonCount = 0;
+  this.epicDragonCount = 0;
+
+  if (this.mydragon) {
+    for (var dragonid in this.mydragon) {
+      var dragonCount = this.mydragon[dragonid];
+      this.dragonCount += dragonCount?1:0;
+      this.epicDragonCount += (dragonCount & (1 << 9))?1:0;
+    }
+  }
+
+  this.dragonCountHTML = 'You have <b>' + this.dragonCount + '</b> Dragon' + (this.dragonCount > 1?'s':'');
+  if (this.epicDragonCount > 1) {
+    this.dragonCountHTML += ', <b>' + this.epicDragonCount + '</b> are Epic Dragons.';
+  }
+  else if (this.epicDragonCount === 1) {
+    this.dragonCountHTML += ', with <b>1</b> Epic Dragon.';
+  }
+  else {
+    this.dragonCountHTML += '.';
+  }
+};
+
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
   function makeSaveString() {
     var saved = {};
@@ -262,16 +351,7 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
     return JSON.stringify(saved);
   }
 
-  var setting = localStorage?localStorage.getItem('ellab-dragonstory-mydragon'):null;
-  if (setting) {
-    try {
-      setting = JSON.parse(setting);
-    }
-    catch (err) {
-      setting = {};
-    }
-  }
-  setting = setting || {};
+  var setting = g_mydragon.mydragon || {};
 
   var tbodyHTML = '';
   var theadHTML = '';
@@ -323,23 +403,12 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   });
 
   if (dragonCountSelector) {
-    var dragonCountHTML = 'You have <b>' + dragonCount + '</b> Dragon' + (dragonCount > 1?'s':'');
-    if (epicDragonCount > 1) {
-      dragonCountHTML += ', <b>' + epicDragonCount + '</b> are Epic Dragons.';
-    }
-    else if (epicDragonCount === 1) {
-      dragonCountHTML += ', with <b>1</b> Epic Dragon.';
-    }
-    else {
-      dragonCountHTML += '.';
-    }
-    $(dragonCountSelector).html(dragonCountHTML);
+    $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
   }
 
   if (init) {
     // only bind click event in first time
     $(containerSelector).on('click', '.tablesorter tr td:nth-child(n+5)', function() {
-      console.log('click');
       var $this = $(this);
       if ($this.data('level') === 0) {
         $this.addClass('selected');
@@ -360,8 +429,10 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
         }
       }
 
-      var saveString = makeSaveString();
-      localStorage.setItem('ellab-dragonstory-mydragon', saveString);
+      g_mydragon.set(makeSaveString());
+      if (dragonCountSelector) {
+        $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
+      }
     });
   }
 };
