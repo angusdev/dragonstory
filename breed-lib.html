@@ -39,7 +39,7 @@ $(document).ready(function() {
 
   $(document.body).bind('ellab.parent.request', onParentRequest);
 
-  window.parent.$('body').trigger('ellabPageReady', [ 'breed' ]);
+  window.parent.$('body').trigger('ellab.lib.ready', [ 'breed' ]);
 });
 
 function onBreedDataChanged(data) {

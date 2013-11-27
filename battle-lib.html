@@ -22,7 +22,7 @@ $(document).ready(function() {
 
   $(document.body).bind('ellab.battle.request', onBattleRequest);
 
-  window.parent.$('body').trigger('ellabPageReady', [ 'battle' ]);
+  window.parent.$('body').trigger('ellab.lib.ready', [ 'battle' ]);
 });
 
 function onBattleDataChanged(data) {

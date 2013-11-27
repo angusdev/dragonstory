@@ -18,18 +18,15 @@
 .container {
   width: 100%;
 }
-iframe {
-  width: 100%;
-  border: none;
-  overflow: hidden;
-}
 
 /* make it invisible */
 iframe[data-role=libiframe] {
- position:absolute;
- left:-1000px;
- width:1px;
- height:1px;
+  position:absolute;
+  left:-1000px;
+  width:1px;
+  height:1px;
+  border: none;
+  overflow: hidden;
 }
 
 .navbar .twitter-typeahead .tt-dropdown-menu {
@@ -195,9 +192,6 @@ iframe[data-role=libiframe] {
         <div id="parent-result"></div>
       </div>
     </div>
-    <div class="tab-pane" id="parenttab2">
-      <iframe src="parent.html"></iframe>
-    </div>
     <!--
        #              #      #      ##            #            #
        #              #      #       #            #            #
@@ -298,7 +292,7 @@ var g_db = new ds.DragonDB();
 function loadData(reload) {
   $('#dragon-count').html('Loading...');
 
-  $('.tab-content iframe').each(function(){
+  $('iframe[role="libiframe"]').each(function(){
     this.contentWindow.$('body').trigger('ellabBreedDataBeforeLoad');
     this.contentWindow.$('body').trigger('ellabBattleDataBeforeLoad');
   });
@@ -434,7 +428,7 @@ function loadData(reload) {
     //breeds = null;
     //type_image_url = null;
 
-    $('.tab-content iframe').each(function(){
+    $('iframe[data-role="libiframe"]').each(function(){
       this.contentWindow.$('body')
         .trigger('ellabBreedDataChanged', [ breed ] )
         .trigger('ellabBattleDataChanged', [ battle ] );
@@ -489,23 +483,10 @@ function onSetMyDragonChange() {
   }
 }
 
-var breedReady = false;
-var parentReady = false;
-var battleReady = false;
+var libBreedReady = false;
+var libBattleReady = false;
 
 $(document).ready(function() {
-  if (document.location.protocol === 'file:') {
-    $('.tab-content iframe').height(1000);
-  }
-  else {
-    window.setInterval(function() {
-      $('.tab-content iframe[data-role!="libiframe"]').each(function() {
-        var h = $(this).contents().find(".container").height();
-        $(this).height(h);
-      });
-    }, 100);
-  }
-
   // switch to the tab in hash
   var hash = window.location.hash;
   if (hash) {
@@ -543,7 +524,7 @@ $(document).ready(function() {
 
   $(document).on('click', '[data-role="dragon-type-dropdown"] a[data-dragonid]', function(e) {
     var dragonid = $(e.target).data('dragonid');
-    $('.tab-content .tab-pane.active iframe').each(function() {
+    $('.tab-content .tab-pane.active iframe[data-role="libiframe"]').each(function() {
       this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ dragonid, breeds[dragonid] ]);
     });
   });
@@ -692,20 +673,17 @@ $(document).ready(function() {
                    #   #                                     #   #
                     ###                                       ###
   */
-  $(document.body).bind('ellabPageReady', function(e, page) {
-    console.log('ellabPageReady ' + page);
+  $(document.body).bind('ellab.lib.ready', function(e, page) {
+    console.log('ellab.lib.ready ' + page);
 
     if (page === 'breed') {
-      breedReady = true;
-    }
-    else if (page === 'parent') {
-      parentReady = true;
+      libBreedReady = true;
     }
     else if (page === 'battle') {
-      battleReady = true;
+      libBattleReady = true;
     }
 
-    if (breedReady && parentReady && battleReady) {
+    if (libBreedReady && libBattleReady) {
       loadData();
     }
   });
