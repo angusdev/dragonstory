@@ -50,22 +50,28 @@ function onBattleRequest(e, dragonid, level) {
       return this.cells[1].textContent === '10%';
     }).remove();
 
-    // hide the 10% cells to reduce the noise
     $('#content_scores td').each(function() {
-      // level 10 is 10% means all level is 10%
+      // hide the 10% cells to reduce the noise
       if (this.textContent === '10%') {
         this.innerHTML = '';
       }
     });
 
+    var html = $('#content_scores').html();
+
+    html = html.replace('<tbody>', '<thead>');
+    html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
+
     // re-style using a temp element, remove all inline style
+    html = html.replace(/\s*style="text-align:center;"+s*/g, '');
+
     $('#result')
-      .html($('#content_scores').html())
+      .html(html)
       .find('table')
         .attr('style', '')
         .addClass("table table-striped table-condensed table-bordered")
         .find('th')
-          .attr('style', 'text-align:center;');
+          .attr('style', '');
 
     window.parent.$('body').trigger('ellab.battle.response', [ $('#result').html() ]);
   }

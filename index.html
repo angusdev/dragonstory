@@ -70,6 +70,10 @@ iframe[data-role=libiframe] {
 #input-mydragon textarea {
   width: 100%;
 }
+
+#battle-result td, #battle-result th {
+  text-align: center;
+}
 </style>
 </head>
 <body>
@@ -289,6 +293,7 @@ iframe[data-role=libiframe] {
 var ds = org.ellab.dragonstory;
 
 var g_mydragon = new ds.MyDragon();
+var g_db = new ds.DragonDB();
 
 function loadData(reload) {
   $('#dragon-count').html('Loading...');
@@ -309,6 +314,7 @@ function loadData(reload) {
 
     // I know, I know this is dangerous
     eval(breed);
+    g_db.reindex();
 
     $('[data-role="dragon-type-dropdown"]').empty();
 
@@ -614,7 +620,64 @@ $(document).ready(function() {
 
   $(document.body).bind('ellab.battle.response', function(e, html) {
     if (html) {
+      if (g_mydragon.dragonCount > 0) {
+        // add extra 'mydragon chance column
+        html = html.replace(/<\/th>/, '</th><th style="text-align:center;">My</th>');
+        html = html.replace(/(<\/a>\s*<\/td>)/g, '$1<td></td>');
+      }
+
       $('#battle-result').html(html);
+
+      if (g_mydragon.dragonCount > 0) {
+        $('#battle-result tbody tr').each(function() {
+          // use dom instead of jquery to improve performance
+          // for one particular case (Fairy Dragon, level 10), change from 6xxx ms to 16ms
+          var found = false;
+          var dragon = g_db.byName(this.cells[0].textContent);
+          if (dragon && dragon.mydragon) {
+            for (var lvl=10 ; lvl>0 ; lvl--) {
+              if (g_mydragon.hasLevel(dragon.mydragon, lvl)) {
+                var td = this.cells[(10 - lvl + 2)];
+                if (td.textContent) {
+                  td.className += ' success';
+                  this.cells[1].className += ' success';
+                  this.cells[1].innerHTML = td.innerHTML;
+
+                  found = true;
+                }
+                break;
+              }
+            }
+          }
+
+          if (!found) {
+            this.style.display = 'none';
+          }
+        });
+
+        // sort table now
+        var sortArray = [];
+        $('#battle-result tbody tr').each(function(i) {
+          sortArray.push({pct:parseInt(this.cells[1].textContent, 10), name:this.cells[0].textContent, tr:this});
+        });
+        sortArray.sort(function(a, b) {
+          var p1 = a.pct || 0
+          var p2 = b.pct || 0;
+          if (p1 === p2) {
+            return a.name < b.name?-1:1;
+          }
+          else {
+           return p2 - p1;
+          }
+        });
+
+        var newtbody = document.createElement('TBODY');
+        sortArray.forEach(function(ele) {
+          newtbody.appendChild(ele.tr);
+        });
+        $('#battle-result tbody').remove();
+        $('#battle-result table').append(newtbody);
+      }
     }
   });
 

@@ -247,6 +247,29 @@ org.ellab.dragonstory.loadBattleData = function () {
   return deferred;
 };
 
+org.ellab.dragonstory.DragonDB = function() {
+  this.reindex();
+};
+
+org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
+  this.nameToIdIdx = {};
+  if (typeof breeds !== 'undefined') {
+    for (var dragonid in breeds) {
+      this.nameToIdIdx[breeds[dragonid].name] = dragonid;
+    }
+  }
+};
+
+org.ellab.dragonstory.DragonDB.prototype.byName = function(name) {
+  var dragonid = this.nameToIdIdx[name];
+  if (dragonid) {
+    return { breeds:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid] };
+  }
+  else {
+    return null;
+  }
+};
+
 org.ellab.dragonstory.MyDragon = function(json) {
   this.KEY = 'ellab-dragonstory-mydragon';
   this.mydragon = {};
@@ -333,6 +356,10 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   else {
     this.dragonCountHTML += '.';
   }
+};
+
+org.ellab.dragonstory.MyDragon.prototype.hasLevel = function(dragonSetting, level) {
+  return (dragonSetting & (1 << (level-1)))?true:false;
 };
 
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
