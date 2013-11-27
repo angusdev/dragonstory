@@ -1,5 +1,5 @@
 /*jshint devel:true */
-/*global $,org,breeds,type_image_url,g_mydragon */
+/*global $,org,breeds,type_image_url,g_mydragon,g_db */
 (function(){
 'use strict';
 
@@ -24,6 +24,7 @@ var ds = org.ellab.dragonstory;
 var BREED_DATA_VERSION = 1;
 var BATTLE_DATA_VERSION = 1;
 var MYDRAGON_DATA_VERSION = 1;
+var EGG_DATA_VERSION = 1;
 
 org.ellab.dragonstory.capitalize = function(s) {
   if (typeof s === 'string' && s.length > 0) {
@@ -34,12 +35,41 @@ org.ellab.dragonstory.capitalize = function(s) {
   }
 };
 
+org.ellab.dragonstory.extract = function(s, prefix, suffix) {
+  var i;
+  if (prefix) {
+    i = s.indexOf(prefix);
+    if (i >= 0) {
+      s = s.substring(i + prefix.length);
+    }
+    else {
+      return '';
+    }
+  }
+
+  if (suffix) {
+    i = s.indexOf(suffix);
+    if (i >= 0) {
+      s = s.substring(0, i);
+    }
+    else {
+      return '';
+    }
+  }
+
+  return s;
+};
+
 org.ellab.dragonstory.getRarityDesc = function(r) {
   return RARITY_DESC[r];
 };
 
 org.ellab.dragonstory.getTypeHTML = function(types, width) {
   var html = '';
+
+  if (types) {
+    types.sort();
+  }
 
   (types || []).forEach(function(type) {
     html += ' <img' + (width?' width="' + width + '"':'') + ' src="' + type_image_url[type] + '"/> ';
@@ -60,6 +90,8 @@ org.ellab.dragonstory.getIncubationSeconds = function(incubationText) {
 org.ellab.dragonstory.clearDragonBtn = function() {
   $('[data-role="dragon-prefix-btn-group"]').empty();
   $('[data-role="dragon-name-btn-group"]').empty();
+  $('[data-role="dragon-level-btn-group"]').empty();
+  $('[data-role="dragon-type-btn-group"]').empty();
 };
 
 org.ellab.dragonstory.makeDragonBtn = function() {
@@ -68,8 +100,9 @@ org.ellab.dragonstory.makeDragonBtn = function() {
   // add "All" button
   $btngroup.each(function() {
     var $this = $(this);
-    if ($this.data('hasall')) {
-      $this.append('<label class="btn btn-default active"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="*">All</label>');
+    if ($this.data('hasall') || $this.data('hasallselected')) {
+      $this.append('<label class="btn btn-default' + ($this.data('hasallselected')?' active':'') + '"><input type="radio" name="' +
+                   $btngroup.data('radio-name') + '" value="*">All</label>');
     }
   });
   for (var i=0 ; i<26 ; i++) {
@@ -110,14 +143,20 @@ org.ellab.dragonstory.selectDragon = function(btngroup, dragonid, dragonname) {
   $($btngroup.data('for')).find(':radio[value="' + dragonid + '"]').first().click();
 };
 
-org.ellab.dragonstory.clearLevelBtn = function() {
-  $('[data-role="dragon-level-btn-group"]').empty();
-};
-
 org.ellab.dragonstory.makeLevelBtn = function() {
   var $btngroup = $('[data-role="dragon-level-btn-group"]');
   for (var i=1 ; i<=20; i++) {
     $btngroup.append('<label class="btn btn-default' + (i===20?' active':'') + '"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + i + '">' + i + '</label>');
+  }
+  $btngroup.find(':radio[value=20]').prop('checked', true);
+};
+
+org.ellab.dragonstory.makeTypeBtn = function() {
+  var $btngroup = $('[data-role="dragon-type-btn-group"]');
+  $btngroup.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="*">All</label>');
+  for (var type in g_db.types) {
+    $btngroup.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + type + '">' +
+                     '<img src="' + g_db.types[type].img + '" width="16"/></label>');
   }
   $btngroup.find(':radio[value=20]').prop('checked', true);
 };
@@ -247,23 +286,215 @@ org.ellab.dragonstory.loadBattleData = function () {
   return deferred;
 };
 
+org.ellab.dragonstory.parseEggTr = function(t) {
+  if (t.indexOf('<th') !== -1) {
+    // this is header, skip it
+    return null;
+  }
+
+  var tds = [];
+  var td;
+  while (t) {
+    // need second extract since: <td>xx</td> => >xx, <td aaa>xx</td> =>  aaa>xx
+    td = ds.extract(ds.extract(t, '<td', '</td>'), '>');
+    t = ds.extract(t, '</td>');
+    if (td) {
+      tds.push(td);
+    }
+  }
+
+  var parsed = {};
+  var attrs = [['eggimg', 'url'], ['name', 'title'], 'type', 'avail', 'rarity'];
+  var tdvalue;
+  for (var i=0 ; i<tds.length ; i++) {
+    var attrs2 = attrs[i];
+    if (!Array.isArray(attrs[i])) {
+      // build a pseudo array
+      attrs2 = [attrs2];
+    }
+    for (var j=0 ; j<attrs2.length ; j++) {
+      var attr = attrs2[j];
+      var tag1 = '<p>', tag2 = '</p>';
+      var findLast = true;
+      if (attr === 'eggimg' || attr === 'image') {
+        tag1 = 'src="';
+        tag2 = '"';
+      }
+      else if (attr === 'name') {
+        tag1 = '>';
+        tag2 = '</a>';
+      }
+      else if (attr === 'title') {
+        tag1 = 'title="';
+        tag2 = '"';
+      }
+      else if (attr == 'url') {
+        tag1 = '<a href="';
+        tag2 = '"';
+        findLast = false;
+      }
+
+      var tdhtml = tds[i];
+      while (tdhtml) {
+        // loop to the last matches
+        tdvalue = ds.extract(tdhtml, tag1, tag2);
+        if (tdvalue) {
+          parsed[attr] = tdvalue.replace(/^\s+/, '').replace(/\s+$/, '');
+        }
+
+        if (findLast) {
+          tdhtml = ds.extract(tdhtml, tag2);
+        }
+        else {
+          // force terminate
+          tdhtml = null;
+        }
+      }
+    }
+  }
+
+  return parsed;
+};
+
+org.ellab.dragonstory.parseEgg = function(t) {
+  var data = {};
+
+  t = ds.extract(t, '<div id="toctitle">', '<a class="button forum-new-post"');
+  var tr;
+  while (t) {
+    tr = ds.extract(t, '<tr>', '</tr>');
+    t = ds.extract(t, '</tr>');
+    if (tr) {
+      var parsed = ds.parseEggTr(tr);
+      if (parsed) {
+        data[parsed.name] = parsed;
+      }
+    }
+  }
+
+  return data;
+};
+
+org.ellab.dragonstory.clearStoredEggData = function() {
+  if (localStorage) {
+    localStorage.removeItem('ellab-dragonstory-egg');
+  }
+};
+
+org.ellab.dragonstory.getStoredEggData = function() {
+  var stored = localStorage?localStorage.getItem('ellab-dragonstory-egg'):null;
+  if (stored) {
+    try {
+      stored = JSON.parse(stored);
+      if (stored.version !== EGG_DATA_VERSION) {
+        stored = null;
+      }
+    }
+    catch (ex) {
+      stored = null;
+    }
+  }
+
+  return stored;
+};
+
+org.ellab.dragonstory.loadEggData = function () {
+  var deferred = $.Deferred();
+
+  var stored = this.getStoredEggData();
+  if (stored) {
+    window.setTimeout(function() {
+      deferred.resolve(stored.data);
+    }, 0);
+  }
+  else {
+    $.ajax('http://dragon-story.wikia.com/wiki/Eggs').done(function(t) {
+      var data = ds.parseEgg(t);
+
+      if (data) {
+        // store the result
+        if (!stored) {
+          stored = { version: EGG_DATA_VERSION };
+        }
+        stored.data = data;
+        if (localStorage) {
+          localStorage.setItem('ellab-dragonstory-egg', JSON.stringify(stored));
+        }
+
+        deferred.resolve(data);
+      }
+    });
+  }
+
+  return deferred;
+};
+
 org.ellab.dragonstory.DragonDB = function() {
   this.reindex();
+  this.eggs = {};
 };
 
 org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
   this.nameToIdIdx = {};
+  this.types = {};
+
+  var savedThis = this;
+
+  if (typeof type_image_url !== 'undefined') {
+    // to sort the type
+    var typeArray = [];
+    for (var type in type_image_url) {
+      typeArray.push(type);
+    }
+    typeArray.sort();
+
+    for (var i=0 ; i<typeArray.length ; i++) {
+      var typeArrayItem = typeArray[i];
+      this.types[typeArrayItem] = { name: ds.capitalize(typeArrayItem), img: type_image_url[typeArrayItem], count:0, dragonids:[] };
+    }
+  }
+
   if (typeof breeds !== 'undefined') {
     for (var dragonid in breeds) {
       this.nameToIdIdx[breeds[dragonid].name] = dragonid;
+
+      /*jshint loopfunc:true */
+      (breeds[dragonid].types || []).forEach(function(type) {
+        if (savedThis.types[type]) {
+          savedThis.types[type].count++;
+          savedThis.types[type].dragonids.push(dragonid);
+        }
+      });
+      /*jshint loopfunc:false */
     }
   }
 };
 
+org.ellab.dragonstory.DragonDB.prototype.setEggs = function(eggs) {
+  this.eggs = eggs || {};
+};
+
 org.ellab.dragonstory.DragonDB.prototype.byName = function(name) {
+  if (!name) {
+    return null;
+  }
+
   var dragonid = this.nameToIdIdx[name];
   if (dragonid) {
-    return { breeds:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid] };
+    return { breed:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid], egg:this.eggs[name + ' Dragon'] };
+  }
+  else {
+    return null;
+  }
+};
+
+org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
+  if (!dragonid) {
+    return null;
+  }
+
+  if (dragonid) {
+    return { breed:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid], egg:this.eggs[breeds[dragonid].name + ' Dragon'] };
   }
   else {
     return null;
@@ -462,6 +693,48 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
       }
     });
   }
+};
+
+org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
+  if (typeof breeds === 'undefined') {
+    return;
+  }
+
+  var tbodyHTML = '';
+  var theadHTML = '';
+  var dragonCount = 0;
+  var epicDragonCount = 0;
+
+  for (var dragonid in breeds) {
+    var dragon = g_db.byID(dragonid);
+
+    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.breed.name +
+                 '" data-dragontype="' + dragon.breed.types.join(',') + '"><td>' + dragon.breed.name +
+                 '</td><td>' + ((dragon.egg && dragon.egg.eggimg)?'<img src="' + dragon.egg.eggimg + '"/>':'') +
+                 '</td><td>' + ds.getTypeHTML(dragon.breed.types) +
+                 '</td><td data-sort-value="' + dragon.breed.rarity + '">' + ds.getRarityDesc(dragon.breed.rarity) +
+                 '</td><td data-sort-value="' + ds.getIncubationSeconds(dragon.breed.incubation) + '">' + ds.getIncubationText(dragon.breed.incubation) +
+                 '</td>';
+
+    tbodyHTML += '</tr>';
+  }
+
+  theadHTML = '<th>Dragon</th><th>Egg</th><th>Types</th><th>Rarity</th><th>Incubation</th>';
+
+  var html = '<table class="table table-striped table-condensed table-bordered tablesorter-blue tablesorter-bootstrap">' +
+             '<thead><tr>' + theadHTML + '</tr></thead><tbody>' + tbodyHTML + '</tbody></table>';
+  theadHTML = null;
+  tbodyHTML = null;
+
+  $(containerSelector).html(html).find('table').tablesorter({
+    theme: 'bootstrap',
+    textExtraction: {
+      1: function(node, table, cellIndex) { return node.previousSibling.innerHTML; },
+      2: function(node, table, cellIndex) { return node.previousSibling.previousSibling.innerHTML; },
+      3: function(node, table, cellIndex) { return parseInt(node.getAttribute('data-sort-value'), 10); },
+      4: function(node, table, cellIndex) { return parseInt(node.getAttribute('data-sort-value'), 10); }
+    }
+  });
 };
 
 })();

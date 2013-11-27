@@ -19,6 +19,10 @@
   width: 100%;
 }
 
+th {
+  text-align: center;
+}
+
 /* make it invisible */
 iframe[data-role=libiframe] {
   position:absolute;
@@ -69,6 +73,14 @@ iframe[data-role=libiframe] {
 }
 
 #battle-result td, #battle-result th {
+  text-align: center;
+}
+
+#dragondb-result td {
+  vertical-align: middle;
+}
+
+#dragondb-result td:nth-child(n+2) {
   text-align: center;
 }
 </style>
@@ -131,6 +143,7 @@ iframe[data-role=libiframe] {
     <li><a href="#parenttab" data-toggle="tab">Parents</a></li>
     <li><a href="#battletab" data-toggle="tab">Battle Arena</a></li>
     <li><a href="#mydragontab" data-toggle="tab">My Dragons</a></li>
+    <li><a href="#dragondbtab" data-toggle="tab">Dragon Database</a></li>
   </ul>
 
   <div class="tab-content">
@@ -243,10 +256,32 @@ iframe[data-role=libiframe] {
     <div class="tab-pane" id="mydragontab">
       <div class="form-group"></div>
       <div class="form-group">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="mydragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="mydragonprefix" data-hasall="true"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="mydragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="mydragonprefix" data-hasallselected="true"></div>
       </div>
       <div class="form-group" data-role="dragon-count-text"></div>
       <div id="mydragoncontainer"></div>
+    </div>
+    <!--
+           #                                         #  #       #            #
+           #                                         #  #       #            #
+        ## #  # ##    ###    ## #   ###   # ##    ## #  # ##   ####    ###   # ##
+       #  ##  ##  #      #  #  #   #   #  ##  #  #  ##  ##  #   #         #  ##  #
+       #   #  #       ####   ##    #   #  #   #  #   #  #   #   #      ####  #   #
+       #  ##  #      #   #  #      #   #  #   #  #  ##  ##  #   #  #  #   #  ##  #
+        ## #  #       ####   ###    ###   #   #   ## #  # ##     ##    ####  # ##
+                            #   #
+                             ###
+    -->
+    <div class="tab-pane" id="dragondbtab">
+      <div class="form-group"></div>
+      <div class="form-group">
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="dragondb-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="dragondbprefix" data-hasall="true"></div>
+      <div class="form-group"></div>
+      <div class="form-group">
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-type-btn-group" data-radio-name="dragondbtype" id="dragondb-type-list"></div>
+      </div>
+      <div class="form-group" data-role="dragon-count-text"></div>
+      <div id="dragondb-result"></div>
     </div>
   </div>
 
@@ -302,12 +337,13 @@ function loadData(reload) {
     ds.clearStoredBattleData();
   }
 
-  $.when(ds.loadBreedData(), ds.loadBattleData()).done(function(breed, battle) {
+  $.when(ds.loadBreedData(), ds.loadBattleData(), ds.loadEggData()).done(function(breed, battle, egg) {
     var oldbreeds = (typeof breeds !== 'undefined')?breeds:null;
     var addedDragonHTML = '';
 
     // I know, I know this is dangerous
     eval(breed);
+    g_db.setEggs(egg);
     g_db.reindex();
 
     $('[data-role="dragon-type-dropdown"]').empty();
@@ -401,12 +437,13 @@ function loadData(reload) {
     // finish decorating the navbar
 
     ds.clearDragonBtn();
-    ds.clearLevelBtn();
 
     ds.makeDragonBtn();
     ds.makeLevelBtn();
+    ds.makeTypeBtn();
 
     ds.buildMyDragon(true, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
+    $('#dragondb-result').empty();
 
     // filter mydragon
     $('#mydragon-prefix-list').on('change', ':radio', function() {
@@ -487,16 +524,6 @@ var libBreedReady = false;
 var libBattleReady = false;
 
 $(document).ready(function() {
-  // switch to the tab in hash
-  var hash = window.location.hash;
-  if (hash) {
-    $('.nav-tabs a[href=' + hash + '][data-toggle="tab"]').click();
-  }
-  // Change hash for page-reload
-  $('.nav-tabs').on('click', '[data-toggle="tab"]', function (e) {
-    window.location.hash = e.target.hash;
-  })
-
   // nav bar reload data
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
@@ -663,6 +690,43 @@ $(document).ready(function() {
   });
 
   /*
+     ####                                      ####   ####          #####                        #
+      #  #                                      #  #   #  #         #                            #
+      #  #  # ##    ###    ## #   ###   # ##    #  #   #  #         #      #   #   ###   # ##   ####
+      #  #  ##  #      #  #  #   #   #  ##  #   #  #   ###          ####   #   #  #   #  ##  #   #
+      #  #  #       ####   ##    #   #  #   #   #  #   #  #         #       # #   #####  #   #   #
+      #  #  #      #   #  #      #   #  #   #   #  #   #  #         #       # #   #      #   #   #  #
+     ####   #       ####   ###    ###   #   #  ####   ####          #####    #     ###   #   #    ##
+                          #   #
+                           ###
+  */
+  $('#dragondb-prefix-list, #dragondb-type-list').on('change', ':radio', function() {
+    if ($('#dragondb-result tbody tr').length === 0) {
+      console.log('buildDragonDB');
+      ds.buildDragonDB('#dragondb-result');
+    }
+
+    var prefix = $('#dragondb-prefix-list :checked').val();
+    var type = $('#dragondb-type-list :checked').val();
+    if (prefix && type) {
+      $('#dragondb-result tbody tr').each(function() {
+        var $this = $(this);
+        var dragonName = $this.data('dragonname') + '';  // "Infinity" will become number
+        var dragonType = $this.data('dragontype');
+        var nameMatch = dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase());
+        var typeMatch = dragonType && dragonType.length > 0 && (type === '*' || $.inArray(type, dragonType.split(',')) !== -1);
+
+        if (nameMatch && typeMatch) {
+          $this.show();
+        }
+        else {
+          $this.hide();
+        }
+      });
+    }
+  });
+
+  /*
      ####                        ####                     #                #####                        #
      #   #                       #   #                    #                #                            #
      #   #   ###    ## #   ###   #   #   ###    ###    ## #  #   #         #      #   #   ###   # ##   ####
@@ -687,6 +751,17 @@ $(document).ready(function() {
       loadData();
     }
   });
+
+  // switch to the tab in hash
+  var hash = window.location.hash;
+  if (hash) {
+    $('.nav-tabs a[href=' + hash + '][data-toggle="tab"]').click();
+  }
+
+  // Change hash for page-reload
+  $('.nav-tabs').on('click', '[data-toggle="tab"]', function (e) {
+    window.location.hash = e.target.hash;
+  })
 
 });
 </script>
