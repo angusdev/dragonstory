@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+var backupJqueryReady = jQuery.ready;
+jQuery.ready = $.Deferred();
+</script>
+<script src="http://dragon-story.wikia.com/index.php?title=MediaWiki:BreedingCalculator.js&amp;action=raw&amp;ctype=text/javascript"></script>
+<script>
+jQuery.ready = backupJqueryReady;
+backupJqueryReady = null;
+</script>
+</head>
+<body>
+<div id="wikia-used-controls" style="display:none;">
+  <div id="breed-result"></div>
+  <div id="parent-result"></div>
+  <select id="breeddragons_dragon1choices"></select>
+  <select id="breeddragons_dragon2choices"><select>
+  <select id="breeddragons_incubationchoices"></select>
+  <select id="breeddragons_levelchoices"></select>
+  <select id="findparents_dragonchoices"></select>
+  <div id="breedingcalculatordata"></div>
+  <div id="breeddragons"></div>
+  <div id="findparents"></div>
+  <div id="content_breeddragons"></div>
+  <div id="content_findparents"></div>
+</div>
+</body>
+<script>
+$(document).ready(function() {
+  $(document.body).bind('ellabBreedDataChanged', function(e, data) {
+    onBreedDataChanged(data);
+  });
+
+  $(document.body).bind('ellab.breed.request', onBreedRequest);
+
+  $(document.body).bind('ellab.parent.request', onParentRequest);
+
+  window.parent.$('body').trigger('ellabPageReady', [ 'breed' ]);
+});
+
+function onBreedDataChanged(data) {
+  $('#wikia-used-controls select, #wikia-used-controls div').empty();
+
+  // I know, I know this is dangerous
+  eval(data);
+
+  buildDataLists();
+  setMenuOptions();
+}
+
+function onBreedRequest(e, dragonid1, dragonid2) {
+  if (dragonid1 && dragonid2) {
+    // fill in the hidden element used by the function
+    $('#breeddragons_dragon1choices option').filter(function() { return this.textContent === breeds[dragonid1].name }).prop('selected', true);
+    $('#breeddragons_dragon2choices option').filter(function() { return this.textContent === breeds[dragonid2].name }).prop('selected', true);
+
+	  // call the wikia function
+    getBreedingOutcome();
+
+    // re-style using a temp element, remove all inline style
+    $('#breed-result')
+      .html($('#content_breeddragons').html())
+      .find('table')
+        .attr('style', '')
+        .addClass("table table-striped table-condensed table-bordered")
+        .find('th')
+          .attr('style', 'text-align:center;');
+
+    window.parent.$('body').trigger('ellab.breed.response', [ $('#breed-result').html() ]);
+  }
+}
+
+function onParentRequest(e, dragonid) {
+  if (dragonid) {
+    // fill in the hidden element used by the function
+    $('#findparents_dragonchoices option').filter(function() { return this.textContent === breeds[dragonid].name }).prop('selected', true);
+
+    // call the wikia function
+    getPossibleParents();
+
+    // re-style using a temp element, remove all inline style
+    $('#parent-result')
+      .html($('#content_findparents').html())
+      .find('table')
+        .attr('style', '')
+        .addClass("table table-striped table-condensed table-bordered")
+        .find('th')
+          .attr('style', 'text-align:center;');
+
+    window.parent.$('body').trigger('ellab.parent.response', [ $('#parent-result').html() ]);
+  }
+}
+
+</script>
+</html>

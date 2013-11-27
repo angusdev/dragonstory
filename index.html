@@ -133,12 +133,76 @@ iframe[data-role=libiframe] {
   </ul>
 
   <div class="tab-content">
+    <!--
+       #                               #   #            #
+       #                               #   #            #
+       # ##   # ##    ###    ###    ## #  ####    ###   # ##
+       ##  #  ##  #  #   #  #   #  #  ##   #         #  ##  #
+       #   #  #      #####  #####  #   #   #      ####  #   #
+       ##  #  #      #      #      #  ##   #  #  #   #  ##  #
+       # ##   #       ###    ###    ## #    ##    ####  # ##
+    -->
     <div class="tab-pane active" id="breedtab">
-      <iframe src="breed.html"></iframe>
+      <iframe id="breedlib" src="breed-lib.html" data-role="libiframe"></iframe>
+      <div class="form-group">
+      </div>
+      <div class="form-group">
+        Dragon 1
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list1" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix1" data-for="#breed-list-1"></div>
+      </div>
+      <div class="form-group">
+        <span style="margin-left: 100px;">Select a dragon first</span>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname1" id="breed-list-1"></div>
+      </div>
+      <div class="form-group">
+        Dragon 2
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list2" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix2" data-for="#breed-list-2"></div>
+      </div>
+      <div class="form-group">
+        <span style="margin-left: 100px;">Select a dragon first</span>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname2" id="breed-list-2"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <div id="breed-result"></div>
+      </div>
     </div>
+    <!--
+                                           #      #            #
+                                           #      #            #
+       # ##    ###   # ##    ###   # ##   ####   ####    ###   # ##
+       ##  #      #  ##  #  #   #  ##  #   #      #         #  ##  #
+       ##  #   ####  #      #####  #   #   #      #      ####  #   #
+       # ##   #   #  #      #      #   #   #  #   #  #  #   #  ##  #
+       #       ####  #       ###   #   #    ##     ##    ####  # ##
+       #
+       #
+    -->
     <div class="tab-pane" id="parenttab">
+      <div class="form-group">
+      </div>
+      <div class="form-group">
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="parentprefix" data-for="#parent-list"></div>
+      </div>
+      <div class="form-group">
+        <span style="margin-left: 100px;">Select a dragon first</span>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="parentname" id="parent-list"></div>
+      </div>
+      <div class="form-group" style="margin-top:10px;">
+        <div id="parent-result" data-role="result"></div>
+      </div>
+    </div>
+    <div class="tab-pane" id="parenttab2">
       <iframe src="parent.html"></iframe>
     </div>
+    <!--
+       #              #      #      ##            #            #
+       #              #      #       #            #            #
+       # ##    ###   ####   ####     #     ###   ####    ###   # ##
+       ##  #      #   #      #       #    #   #   #         #  ##  #
+       #   #   ####   #      #       #    #####   #      ####  #   #
+       ##  #  #   #   #  #   #  #    #    #       #  #  #   #  ##  #
+       # ##    ####    ##     ##    ###    ###     ##    ####  # ##
+    -->
     <div class="tab-pane" id="battletab">
       <iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>
       <div class="form-group">
@@ -151,7 +215,7 @@ iframe[data-role=libiframe] {
       </div>
       <div class="form-group">
         <span style="margin-left: 100px;">Select a dragon first</span>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="dragonname" id="battle-list"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="battlename" id="battle-list"></div>
       </div>
       <div class="form-group">
         <div class="row">
@@ -167,6 +231,17 @@ iframe[data-role=libiframe] {
         <div id="battle-result"></div>
       </div>
     </div>
+    <!--
+                         #                                      #            #
+                         #                                      #            #
+       ## #   #   #   ## #  # ##    ###    ## #   ###   # ##   ####    ###   # ##
+       # # #  #   #  #  ##  ##  #      #  #  #   #   #  ##  #   #         #  ##  #
+       # # #  #  ##  #   #  #       ####   ##    #   #  #   #   #      ####  #   #
+       # # #   ## #  #  ##  #      #   #  #      #   #  #   #   #  #  #   #  ##  #
+       #   #      #   ## #  #       ####   ###    ###   #   #    ##    ####  # ##
+              #   #                       #   #
+               ###                         ###
+    -->
     <div class="tab-pane" id="mydragontab">
       <div class="form-group"></div>
       <div class="form-group">
@@ -303,7 +378,6 @@ function loadData(reload) {
         $('[data-role="dragon-type-dropdown"]').append(dropdownHTML);
       });
     }
-
 
     $('[data-role="search-dragon"]').typeahead('destroy').typeahead({
       name: 'dragons',
@@ -478,7 +552,61 @@ $(document).ready(function() {
     });
   });
 
-  // click battle dragon or level
+  /*
+     ####                            #         #####         #             #####                        #
+      #  #                           #           #           #             #                            #
+      #  #  # ##    ###    ###    ## #           #     ###   # ##          #      #   #   ###   # ##   ####
+      ###   ##  #  #   #  #   #  #  ##           #        #  ##  #         ####   #   #  #   #  ##  #   #
+      #  #  #      #####  #####  #   #           #     ####  #   #         #       # #   #####  #   #   #
+      #  #  #      #      #      #  ##           #    #   #  ##  #         #       # #   #      #   #   #  #
+     ####   #       ###    ###    ## #           #     ####  # ##          #####    #     ###   #   #    ##
+  */
+  $(document).on('change', '#breed-list-1 :radio, #breed-list-2 :radio', function(e) {
+    var dragonid1 = $('#breed-list-1 :checked').val();
+    var dragonid2 = $('#breed-list-2 :checked').val();
+    if (dragonid1 && dragonid2) {
+      $('#breed-result').empty();
+      document.getElementById('breedlib').contentWindow.$('body').trigger('ellab.breed.request', [ dragonid1, dragonid2 ]);    }
+  });
+
+  $(document.body).bind('ellab.breed.response', function(e, html) {
+    if (html) {
+      $('#breed-result').html(html);
+    }
+  });
+
+  /*
+     ####                                #            #####         #             #####                        #
+     #   #                               #              #           #             #                            #
+     #   #   ###   # ##    ###   # ##   ####            #     ###   # ##          #      #   #   ###   # ##   ####
+     ####       #  ##  #  #   #  ##  #   #              #        #  ##  #         ####   #   #  #   #  ##  #   #
+     #       ####  #      #####  #   #   #              #     ####  #   #         #       # #   #####  #   #   #
+     #      #   #  #      #      #   #   #  #           #    #   #  ##  #         #       # #   #      #   #   #  #
+     #       ####  #       ###   #   #    ##            #     ####  # ##          #####    #     ###   #   #    ##
+  */
+  $(document).on('change', '#parent-list :radio', function() {
+    var dragonid = $('#parent-list :checked').val();
+    if (dragonid) {
+      $('#parent-result').empty();
+      document.getElementById('breedlib').contentWindow.$('body').trigger('ellab.parent.request', [ dragonid ]);
+    }
+  });
+
+  $(document.body).bind('ellab.parent.response', function(e, html) {
+    if (html) {
+      $('#parent-result').html(html);
+    }
+  });
+
+  /*
+     ####           #      #      ##                  #####         #             #####                        #
+      #  #          #      #       #                    #           #             #                            #
+      #  #   ###   ####   ####     #     ###            #     ###   # ##          #      #   #   ###   # ##   ####
+      ###       #   #      #       #    #   #           #        #  ##  #         ####   #   #  #   #  ##  #   #
+      #  #   ####   #      #       #    #####           #     ####  #   #         #       # #   #####  #   #   #
+      #  #  #   #   #  #   #  #    #    #               #    #   #  ##  #         #       # #   #      #   #   #  #
+     ####    ####    ##     ##    ###    ###            #     ####  # ##          #####    #     ###   #   #    ##
+  */
   $(document).on('change', '#battle-list :radio, #battle-level :radio', function() {
     var dragonid = $('#battle-list :checked').val();
     var level = $('#battle-level :checked').val();
@@ -494,6 +622,17 @@ $(document).ready(function() {
     }
   });
 
+  /*
+     ####                        ####                     #                #####                        #
+     #   #                       #   #                    #                #                            #
+     #   #   ###    ## #   ###   #   #   ###    ###    ## #  #   #         #      #   #   ###   # ##   ####
+     ####       #  #  #   #   #  ####   #   #      #  #  ##  #   #         ####   #   #  #   #  ##  #   #
+     #       ####   ##    #####  # #    #####   ####  #   #  #  ##         #       # #   #####  #   #   #
+     #      #   #  #      #      #  #   #      #   #  #  ##   ## #         #       # #   #      #   #   #  #
+     #       ####   ###    ###   #   #   ###    ####   ## #      #         #####    #     ###   #   #    ##
+                   #   #                                     #   #
+                    ###                                       ###
+  */
   $(document.body).bind('ellabPageReady', function(e, page) {
     console.log('ellabPageReady ' + page);
 
