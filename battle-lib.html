@@ -44,6 +44,20 @@ function onBattleRequest(e, dragonid, level) {
     // call the wikia function
     calculateScores();
 
+    // remove the 10% dragons to reduce the result size
+    $('#content_scores tr').filter(function() {
+      // level 10 is 10% means all level is 10%
+      return this.cells[1].textContent === '10%';
+    }).remove();
+
+    // hide the 10% cells to reduce the noise
+    $('#content_scores td').each(function() {
+      // level 10 is 10% means all level is 10%
+      if (this.textContent === '10%') {
+        this.innerHTML = '';
+      }
+    });
+
     // re-style using a temp element, remove all inline style
     $('#result')
       .html($('#content_scores').html())
