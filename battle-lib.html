@@ -50,14 +50,10 @@ function onBattleRequest(e, dragonid, level) {
       return this.cells[1].textContent === '10%';
     }).remove();
 
-    $('#content_scores td').each(function() {
-      // hide the 10% cells to reduce the noise
-      if (this.textContent === '10%') {
-        this.innerHTML = '';
-      }
-    });
-
     var html = $('#content_scores').html();
+
+    // hide the 10% cells to reduce the noise
+    html = html.replace(/>10%</g, '');
 
     html = html.replace('<tbody>', '<thead>');
     html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
