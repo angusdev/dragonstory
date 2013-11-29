@@ -517,6 +517,19 @@ function onSetMyDragonSave() {
   }
 }
 
+function onSetMyDragonChange() {
+  var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
+
+  if (newsetting) {
+    var count = 0;
+    try {
+      count = Object.keys(JSON.parse(newsetting)).length;
+      $('#input-mydragon [data-role="newsettingcount"]').html(' (' + count + ' Dragon' + (count>1?'s':'') + ')');    }
+    catch (err) {
+    }
+  }
+}
+
 function onClearStorage() {
   function formatSize(n) {
     return n===0?'':(n<=1024?"1 KB":Math.round(n / 1024, 0) + " KB");
@@ -555,19 +568,6 @@ function onClearStorageClear(target) {
     $('#clear-storage-' + key + '-size').html('');
     $('#clear-storage-' + key + '-updatetime').html('');
     $(target).addClass('disabled');
-  }
-}
-
-function onSetMyDragonChange() {
-  var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
-
-  if (newsetting) {
-    var count = 0;
-    try {
-      count = Object.keys(JSON.parse(newsetting)).length;
-      $('#input-mydragon [data-role="newsettingcount"]').html(' (' + count + ' Dragon' + (count>1?'s':'') + ')');    }
-    catch (err) {
-    }
   }
 }
 
