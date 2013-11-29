@@ -137,10 +137,13 @@ org.ellab.dragonstory.makeDragonBtn = function() {
   return $btngroup;
 };
 
-org.ellab.dragonstory.selectDragon = function(btngroup, dragonid, dragonname) {
-  var $btngroup = $(btngroup);
-  $btngroup.find(':radio[value="' + dragonname.charAt().toUpperCase() + '"]').first().click();
-  $($btngroup.data('for')).find(':radio[value="' + dragonid + '"]').first().click();
+org.ellab.dragonstory.selectDragon = function(btngroup, dragonid) {
+  ds.selectPrefix(btngroup, dragonid);
+  $($(btngroup).data('for')).find(':radio[value="' + dragonid + '"]').first().click();
+};
+
+org.ellab.dragonstory.selectPrefix = function(btngroup, dragonid) {
+  $(btngroup).find(':radio[value="' + g_db.byID(dragonid).breed.name.charAt(0).toUpperCase() + '"]').first().click();
 };
 
 org.ellab.dragonstory.makeLevelBtn = function() {

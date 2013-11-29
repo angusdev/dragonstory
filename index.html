@@ -50,21 +50,21 @@ iframe[data-role=libiframe] {
   margin-right:10px;
 }
 
-#mydragoncontainer .tablesorter th:nth-child(n+5) .tablesorter-header-inner {
+#mydragon-result .tablesorter th:nth-child(n+5) .tablesorter-header-inner {
   text-align: center;
   padding: 4px;
 }
 
-#mydragoncontainer .tablesorter td:nth-child(n+5) {
+#mydragon-result .tablesorter td:nth-child(n+5) {
   text-align: center;
   color: #aaa;
 }
 
-#mydragoncontainer .tablesorter [data-level="0"].selected {
+#mydragon-result .tablesorter [data-level="0"].selected {
   background-color: #aaa;
 }
 
-#mydragoncontainer .tablesorter .selected {
+#mydragon-result .tablesorter .selected {
   background-color: #cfb;
 }
 
@@ -195,7 +195,7 @@ iframe[data-role=libiframe] {
       <div class="form-group">
       </div>
       <div class="form-group">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="parentprefix" data-for="#parent-list"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="parentprefix" data-for="#parent-list" data-on-select-dragon="id"></div>
       </div>
       <div class="form-group">
         <span style="margin-left: 100px;">Select a dragon first</span>
@@ -222,7 +222,7 @@ iframe[data-role=libiframe] {
         Opponent Dragon
       </div>
       <div class="form-group">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battleprefix" data-for="#battle-list"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battleprefix" data-for="#battle-list" data-on-select-dragon="id"></div>
       </div>
       <div class="form-group">
         <span style="margin-left: 100px;">Select a dragon first</span>
@@ -259,7 +259,7 @@ iframe[data-role=libiframe] {
         <div class="btn-group btn-group-s" data-toggle="buttons" id="mydragon-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="mydragonprefix" data-hasallselected="true"></div>
       </div>
       <div class="form-group" data-role="dragon-count-text"></div>
-      <div id="mydragoncontainer"></div>
+      <div id="mydragon-result"></div>
     </div>
     <!--
            #                                         #  #       #            #
@@ -442,25 +442,8 @@ function loadData(reload) {
     ds.makeLevelBtn();
     ds.makeTypeBtn();
 
-    ds.buildMyDragon(true, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
+    ds.buildMyDragon(true, '#mydragon-result', '#mydragontab [data-role="dragon-count-text"]');
     $('#dragondb-result').empty();
-
-    // filter mydragon
-    $('#mydragon-prefix-list').on('change', ':radio', function() {
-      var prefix = $(this).closest('.btn-group').find(':checked').val();
-      if (prefix) {
-        $('#mydragoncontainer tbody tr').each(function() {
-          var $this = $(this);
-          var dragonName = $this.data('dragonname');
-          if (dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase())) {
-            $this.show();
-          }
-          else {
-            $this.hide();
-          }
-        });
-      }
-    });
 
     //breeds = null;
     //type_image_url = null;
@@ -496,7 +479,7 @@ function onSetMyDragonSave() {
         $('#input-mydragon').modal('hide');
         g_mydragon.set(newsetting);
         $('#input-mydragon [data-role="newsetting"]').val('');
-        ds.buildMyDragon(false, '#mydragoncontainer', '#mydragontab [data-role="dragon-count-text"]');
+        ds.buildMyDragon(false, '#mydragon-result', '#mydragontab [data-role="dragon-count-text"]');
         // switch to mydragon tab
         $('a[href="#mydragontab"][data-toggle="tab"]').click();
       }
@@ -551,14 +534,34 @@ $(document).ready(function() {
 
   $(document).on('click', '[data-role="dragon-type-dropdown"] a[data-dragonid]', function(e) {
     var dragonid = $(e.target).data('dragonid');
-    $('.tab-content .tab-pane.active iframe[data-role="libiframe"]').each(function() {
-      this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ dragonid, breeds[dragonid] ]);
-    });
+    if (dragonid) {
+      $(document).trigger('ellab.selectdragon', [ dragonid ]);
+    }
   });
 
+  /*
+      ###           ##                   #            ####
+     #   #           #                   #             #  #
+     #       ###     #     ###    ###   ####           #  #  # ##    ###    ## #   ###   # ##
+      ###   #   #    #    #   #  #   #   #             #  #  ##  #      #  #  #   #   #  ##  #
+         #  #####    #    #####  #       #             #  #  #       ####   ##    #   #  #   #
+     #   #  #        #    #      #   #   #  #          #  #  #      #   #  #      #   #  #   #
+      ###    ###    ###    ###    ###     ##          ####   #       ####   ###    ###   #   #
+                                                                           #   #
+                                                                            ###
+  */
   $(document).on('typeahead:selected', '[data-role="search-dragon"]', function(e, datum) {
-    $('.tab-content .tab-pane.active iframe').each(function() {
-      this.contentWindow.$('body').trigger('ellab.globalselectdragon', [ datum.dragonid, datum.dragon ]);
+    $(document).trigger('ellab.selectdragon', [ datum.dragonid ]);
+  });
+
+  $(document).bind('ellab.selectdragon', function(e, dragonid) {
+    $('.tab-content .tab-pane.active [data-on-select-dragon]').each(function() {
+      if (this.getAttribute('data-on-select-dragon') === 'id') {
+        ds.selectDragon(this, dragonid);
+      }
+      else if (this.getAttribute('data-on-select-dragon') === 'prefix') {
+        ds.selectPrefix(this, dragonid);
+      }
     });
   });
 
@@ -690,6 +693,38 @@ $(document).ready(function() {
   });
 
   /*
+    #   #         ####                                             #####                        #
+    #   #          #  #                                            #                            #
+    ## ##  #   #   #  #  # ##    ###    ## #   ###   # ##          #      #   #   ###   # ##   ####
+    # # #  #   #   #  #  ##  #      #  #  #   #   #  ##  #         ####   #   #  #   #  ##  #   #
+    #   #  #  ##   #  #  #       ####   ##    #   #  #   #         #       # #   #####  #   #   #
+    #   #   ## #   #  #  #      #   #  #      #   #  #   #         #       # #   #      #   #   #  #
+    #   #      #  ####   #       ####   ###    ###   #   #         #####    #     ###   #   #    ##
+           #   #                       #   #
+            ###                         ###
+  */
+  $('#mydragon-prefix-list').on('change', ':radio', function() {
+    var prefix = $(this).closest('.btn-group').find(':checked').val();
+    if (prefix) {
+      $('#mydragon-result tbody tr').each(function() {
+        var $this = $(this);
+        var dragonName = $this.data('dragonname');
+        if (dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase())) {
+          $this.show();
+        }
+        else {
+          $this.hide();
+        }
+      });
+    }
+  });
+
+  $(document).bind('ellab.selectdragon', function(e, dragonid) {
+    $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid=' + dragonid + ']').show();
+    $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid!=' + dragonid + ']').hide();
+  });
+
+  /*
      ####                                      ####   ####          #####                        #
       #  #                                      #  #   #  #         #                            #
       #  #  # ##    ###    ## #   ###   # ##    #  #   #  #         #      #   #   ###   # ##   ####
@@ -724,6 +759,11 @@ $(document).ready(function() {
         }
       });
     }
+  });
+
+  $(document).bind('ellab.selectdragon', function(e, dragonid) {
+    $('.tab-content .tab-pane.active #dragondb-result tbody tr[data-dragonid=' + dragonid + ']').show();
+    $('.tab-content .tab-pane.active #dragondb-result tbody tr[data-dragonid!=' + dragonid + ']').hide();
   });
 
   /*
