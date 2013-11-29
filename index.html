@@ -9,6 +9,7 @@
 <script src="//cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
 <script src="//cdn.jsdelivr.net/hogan.js/2.0.0/hogan.common.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
 <script src="dragonstory.js"></script>
 <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="bootstrap-more.css">
@@ -119,6 +120,8 @@ iframe[data-role=libiframe] {
         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-cog"></i>Tools <b class="caret"></b></a>
         <ul class="dropdown-menu">
           <li><a href="#" data-role="setmydragon"><i class="glyphicon glyphicon-star"></i>My Dragons</a></li>
+          <li class="divider"></li>
+          <li><a href="#" data-toggle="modal" data-target="#clear-storage"><i class="glyphicon glyphicon-trash"></i>Clear Storage</a></li>
           <li class="divider"></li>
           <li><a href="https://itunes.apple.com/app/dragon-story/id513474544" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i>iOS App</a></li>
           <li><a href="https://play.google.com/store/apps/details?id=com.teamlava.dragon" target="_blank"><i class="glyphicon glyphicon-cloud-download"></i>Android App</a></li>
@@ -317,6 +320,24 @@ iframe[data-role=libiframe] {
     </div>
   </div>
 </div> <!-- #input-mydragon -->
+
+<div class="modal fade" id="clear-storage">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Clear Storage</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" role="form">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- #input-mydragon -->
 </body>
 <script>
 var ds = org.ellab.dragonstory;
@@ -490,6 +511,47 @@ function onSetMyDragonSave() {
   }
 }
 
+function onClearStorage() {
+  function formatSize(n) {
+    return n===0?'':(n<=1024?"1 KB":Math.round(n / 1024, 0) + " KB");
+  }
+
+  var needCreateForm = $('#clear-storage form .form-group').length === 0;
+
+  if (localStorage) {
+    var info = ds.StorageManager.getStorageInfo()
+    var totalSize = 0;
+    for (var key in info) {
+      if (needCreateForm) {
+        $('#clear-storage form').append(' \
+          <div class="form-group"> \
+            <div class="col-sm-3"><p class="form-control-static">' + ds.capitalize(key) + '</p></div> \
+            <div class="col-sm-2"><p class="form-control-static" id="clear-storage-' + key + '-size"></p></div> \
+            <div class="col-sm-4"><p class="form-control-static" id="clear-storage-' + key + '-updatetime"></p></div> \
+            <div class="col-sm-3"> \
+              <button class="btn btn-default" data-role="clear" data-storage-key="' + key + '">Clear</button> \
+            </div> \
+          </div>'
+        );
+      }
+
+      totalSize += info[key].size;
+      $('#clear-storage-' + key + '-size').html(formatSize(info[key].size));
+      $('#clear-storage-' + key + '-updatetime').html(info[key].updateTime?moment(info[key].updateTime).fromNow():'');
+    }
+  }
+}
+
+function onClearStorageClear(target) {
+  var key = $(target).data('storage-key');
+  if (confirm('Are you sure to delete the data?')) {
+    ds.StorageManager.removeItem(key);
+    $('#clear-storage-' + key + '-size').html('');
+    $('#clear-storage-' + key + '-updatetime').html('');
+    $(target).addClass('disabled');
+  }
+}
+
 function onSetMyDragonChange() {
   var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
 
@@ -522,6 +584,16 @@ $(document).ready(function() {
   $('#input-mydragon [data-role="save"]').click(function(e) {
     e.stopPropagation();
     onSetMyDragonSave();
+  });
+
+  // clear storage
+  $('[data-target="#clear-storage"]').click(function(e) {
+    onClearStorage();
+  });
+
+  $(document).on('click', '#clear-storage [data-role="clear"]', function(e) {
+    e.stopPropagation();
+    onClearStorageClear(e.target);
   });
 
   $('#input-mydragon [data-role="newsetting"]').bind('change', function(e) {
