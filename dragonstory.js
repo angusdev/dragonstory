@@ -667,7 +667,7 @@ org.ellab.dragonstory.DragonDB.prototype.byName = function(name) {
 
   var dragonid = this.nameToIdIdx[name];
   if (dragonid) {
-    return { breed:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid], egg:this.eggs[name + ' Dragon'] };
+    return { breed:breeds[dragonid], mydragon:g_mydragon.byID(dragonid), egg:this.eggs[name + ' Dragon'] };
   }
   else {
     return null;
@@ -680,16 +680,30 @@ org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
   }
 
   if (dragonid) {
-    return { breed:breeds[dragonid], mydragon:g_mydragon.mydragon[dragonid], egg:this.eggs[breeds[dragonid].name + ' Dragon'] };
+    return { breed:breeds[dragonid], mydragon:g_mydragon.byID(dragonid), egg:this.eggs[breeds[dragonid].name + ' Dragon'] };
   }
   else {
     return null;
   }
 };
 
+org.ellab.dragonstory.MyDragonItem = function(dragonid, levels) {
+  this.dragonid = dragonid;
+  this.levels = levels;
+  this.maxlevel = 0;
+
+  for (var i=10 ; i>=1 ; i--) {
+    if (this.levels & (1 << (i-1))) {
+      this.maxlevel = i;
+      break;
+    }
+  }
+};
+
 org.ellab.dragonstory.MyDragon = function(json) {
   this.KEY = 'ellab-dragonstory-mydragon';
-  this.mydragon = {};
+  this._dragons = {}; // MyDragonItem
+  this._mydragon = {};
   this.json = '';
   this.dragonCount = 0;
   this.epicDragonCount = 0;
@@ -697,8 +711,8 @@ org.ellab.dragonstory.MyDragon = function(json) {
 
   if (json) {
     // from input, throw exception if parse fail
-    this.mydragon  = JSON.parse(json);
-    this.json = this.mydragon?JSON.stringify(this.mydragon):'';
+    this._mydragon  = JSON.parse(json);
+    this.json = this._mydragon?JSON.stringify(this._mydragon):'';
     this.onChange();
   }
   else {
@@ -716,8 +730,8 @@ org.ellab.dragonstory.MyDragon = function(json) {
       }
     }
 
-    this.mydragon = stored?stored.mydragon:null;
-    this.json = this.mydragon?JSON.stringify(this.mydragon):'';
+    this._mydragon = stored?stored.mydragon:null;
+    this.json = this._mydragon?JSON.stringify(this._mydragon):'';
     this.onChange();
   }
 };
@@ -739,7 +753,7 @@ org.ellab.dragonstory.MyDragon.prototype.set = function(dragons) {
     json = JSON.stringify(dragons);
   }
 
-  this.mydragon = mydragon;
+  this._mydragon = mydragon;
   this.json = json;
 
   if (localStorage) {
@@ -752,14 +766,16 @@ org.ellab.dragonstory.MyDragon.prototype.set = function(dragons) {
 };
 
 org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
+  this.dragons = {};
   this.dragonCount = 0;
   this.epicDragonCount = 0;
 
-  if (this.mydragon) {
-    for (var dragonid in this.mydragon) {
-      var dragonCount = this.mydragon[dragonid];
-      this.dragonCount += dragonCount?1:0;
-      this.epicDragonCount += (dragonCount & (1 << 9))?1:0;
+  if (this._mydragon) {
+    for (var dragonid in this._mydragon) {
+      var dragon = new ds.MyDragonItem(dragonid, this._mydragon[dragonid]);
+      this.dragons[dragonid] = dragon;
+      this.dragonCount += dragon.maxlevel?1:0;
+      this.epicDragonCount += dragon.maxlevel === 10?1:0;
     }
   }
 
@@ -773,6 +789,10 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   else {
     this.dragonCountHTML += '.';
   }
+};
+
+org.ellab.dragonstory.MyDragon.prototype.byID = function(dragonid) {
+  return this.dragons[dragonid] || new ds.MyDragonItem('notfound', 0);
 };
 
 org.ellab.dragonstory.MyDragon.prototype.hasLevel = function(dragonSetting, level) {
@@ -795,38 +815,26 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
     return JSON.stringify(saved);
   }
 
-  var setting = g_mydragon.mydragon || {};
-
   var tbodyHTML = '';
   var theadHTML = '';
   var dragonCount = 0;
   var epicDragonCount = 0;
 
   for (var dragonid in breeds) {
-    var dragon = breeds[dragonid];
-    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.name + '"><td>' + dragon.name +
-                 '</td><td>' + ds.getTypeHTML(dragon.types, 16) +
-                 '</td><td data-sort-value="' + dragon.rarity + '">' + ds.getRarityDesc(dragon.rarity) +
-                 '</td><td data-sort-value="' + ds.getIncubationSeconds(dragon.incubation) + '">' + ds.getIncubationText(dragon.incubation) +
+    var dragon = g_db.byID(dragonid);
+    var breed = dragon.breed;
+    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + breed.name + '"><td>' + breed.name +
+                 '</td><td>' + ds.getTypeHTML(breed.types, 16) +
+                 '</td><td data-sort-value="' + breed.rarity + '">' + ds.getRarityDesc(breed.rarity) +
+                 '</td><td data-sort-value="' + ds.getIncubationSeconds(breed.incubation) + '">' + ds.getIncubationText(breed.incubation) +
                  '</td>';
 
-    dragonCount += setting[dragonid]?1:0;
-    epicDragonCount += (setting[dragonid] & (1 << 9))?1:0;
-
     for (var i=0 ; i<=10 ; i++) {
-      if (i === 0) {
-        // selected if setting[dragonid] is undefined or === 0
-        tbodyHTML += '<td data-level="0"' + (setting[dragonid]?'':' class="selected"') + '></td>';
-      }
-      else {
-        var selected = setting[dragonid] & (1 << (i-1));
-        tbodyHTML += '<td data-level="' + i + '"' + (selected?' class="selected"':'') + '>' + i + '</td>';
-      }
+      tbodyHTML += '<td data-level="' + i + '"' + (dragon.mydragon.maxlevel === i?' class="selected"':'') + '>' + (i>0?i:'') + '</td>';
     }
 
     tbodyHTML += '</tr>';
   }
-
 
   theadHTML = '<th>Dragon</th><th>Types</th><th>Rarity</th><th>Incubation</th>';
   for (var thi=0 ; thi<=10 ; thi++) {
@@ -854,23 +862,12 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
     // only bind click event in first time
     $(containerSelector).on('click', '.tablesorter tr td:nth-child(n+5)', function() {
       var $this = $(this);
-      if ($this.data('level') === 0) {
-        $this.addClass('selected');
 
-        // clear all other level
-        $this.parent().find('[data-level!="0"].selected').removeClass('selected');
-      }
-      else {
-        $this.toggleClass('selected');
-
-        if ($this.parent().find('[data-level!="0"].selected').length) {
-          // at least one selected
-          $this.parent().find('[data-level="0"]').removeClass('selected');
-        }
-        else {
-          // no selected
-          $this.parent().find('[data-level="0"]').addClass('selected');
-        }
+      $this.siblings('[data-level].selected').removeClass('selected');
+      $this.toggleClass('selected');
+      if (!$this.hasClass('selected')) {
+        // none selected
+        $this.parent().find('[data-level="0"]').addClass('selected');
       }
 
       g_mydragon.set(makeSaveString());
@@ -897,6 +894,7 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
     tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.breed.name +
                  '" data-dragontype="' + dragon.breed.types.join(',') + '" data-dragonincubation="' +
                  ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.breed.name +
+                 (g_db.byID(dragonid).mydragon.maxlevel?' <span class="badge">' + g_db.byID(dragonid).mydragon.maxlevel + '</span>':'') +
                  '</td><td>' + ((dragon.egg && dragon.egg.eggimg)?'<img src="' + dragon.egg.eggimg + '"/>':'') +
                  '</td><td>' + ds.getTypeHTML(dragon.breed.types) +
                  '</td><td data-sort-value="' + dragon.breed.rarity + '">' + ds.getRarityDesc(dragon.breed.rarity) +

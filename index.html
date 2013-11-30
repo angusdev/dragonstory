@@ -824,25 +824,19 @@ $(document).ready(function() {
         $('#battle-result tbody tr').each(function() {
           // use dom instead of jquery to improve performance
           // for one particular case (Fairy Dragon, level 10), change from 6xxx ms to 16ms
-          var found = false;
           var dragon = g_db.byName(this.cells[0].textContent);
-          if (dragon && dragon.mydragon) {
-            for (var lvl=10 ; lvl>0 ; lvl--) {
-              if (g_mydragon.hasLevel(dragon.mydragon, lvl)) {
-                var td = this.cells[(10 - lvl + 2)];
-                if (td.textContent) {
-                  td.className += ' success';
-                  this.cells[1].className += ' warning';
-                  this.cells[1].innerHTML = td.innerHTML;
-
-                  found = true;
-                }
-                break;
-              }
+          if (dragon && dragon.mydragon && dragon.mydragon.maxlevel) {
+            var td = this.cells[(10 - dragon.mydragon.maxlevel + 2)];
+            if (td.textContent) {
+              td.className += ' success';
+              this.cells[1].className += ' warning';
+              this.cells[1].innerHTML = td.innerHTML;
+            }
+            else {
+              this.style.display = 'none';
             }
           }
-
-          if (!found) {
+          else {
             this.style.display = 'none';
           }
         });
