@@ -119,7 +119,7 @@ iframe[data-role=libiframe] {
       <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-cog"></i>Tools <b class="caret"></b></a>
         <ul class="dropdown-menu">
-          <li><a href="#" data-role="setmydragon"><i class="glyphicon glyphicon-star"></i>My Dragons</a></li>
+          <li><a href="#" data-role="manage-mydragon"><i class="glyphicon glyphicon-star"></i>My Dragons</a></li>
           <li class="divider"></li>
           <li><a href="#" data-toggle="modal" data-target="#clear-storage"><i class="glyphicon glyphicon-trash"></i>Clear Storage</a></li>
           <li class="divider"></li>
@@ -314,7 +314,7 @@ iframe[data-role=libiframe] {
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">My Dragon Setting</h4>
+        <h4 class="modal-title">Manage My Dragon</h4>
       </div>
       <div class="modal-body">
         <h5>Current Settings <span data-role="oldsettingcount"></span></h5>
@@ -483,11 +483,14 @@ function loadData(reload) {
   });
 }
 
-function onSetMyDragon() {
+function onManageMydragon() {
   if (!localStorage) {
     alert("Oops! Your browser doesn't support LocalStorage");
     return;
   }
+
+  // close other modal
+  $('.modal').modal('hide');
 
   $('#input-mydragon [data-role="oldsettingcount"]').html(g_mydragon.dragonCountHTML?(' (' + g_mydragon.dragonCountHTML + ')'):'');
   $('#input-mydragon [data-role="oldsetting"]').val(g_mydragon.json);
@@ -495,7 +498,7 @@ function onSetMyDragon() {
   $('#input-mydragon').modal('show').find('[data-role="newsetting"]').focus();
 }
 
-function onSetMyDragonSave() {
+function onManageMydragonSave() {
   var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
 
   if (newsetting) {
@@ -517,7 +520,7 @@ function onSetMyDragonSave() {
   }
 }
 
-function onSetMyDragonChange() {
+function onManageMydragonChange() {
   var newsetting = $('#input-mydragon [data-role="newsetting"]').val();
 
   if (newsetting) {
@@ -537,33 +540,58 @@ function onClearStorage() {
 
   var needCreateForm = $('#clear-storage form .form-group').length === 0;
 
-  if (localStorage) {
-    var info = ds.StorageManager.getStorageInfo()
-    var totalSize = 0;
-    for (var key in info) {
-      if (needCreateForm) {
-        $('#clear-storage form').append(' \
-          <div class="form-group"> \
-            <div class="col-sm-3"><p class="form-control-static">' + ds.capitalize(key) + '</p></div> \
-            <div class="col-sm-2"><p class="form-control-static" id="clear-storage-' + key + '-size"></p></div> \
-            <div class="col-sm-4"><p class="form-control-static" id="clear-storage-' + key + '-updatetime"></p></div> \
-            <div class="col-sm-3"> \
-              <button class="btn btn-default" data-role="clear" data-storage-key="' + key + '">Clear</button> \
-            </div> \
-          </div>'
-        );
-      }
+  if (!localStorage) {
+    return;
+  }
 
-      totalSize += info[key].size;
-      $('#clear-storage-' + key + '-size').html(formatSize(info[key].size));
-      $('#clear-storage-' + key + '-updatetime').html(info[key].updateTime?moment(info[key].updateTime).fromNow():'');
+  var info = ds.StorageManager.getStorageInfo();
+
+  for (var key in info) {
+    if (needCreateForm) {
+      $('#clear-storage form').append((key === 'total' || key === 'all'?'<hr/>':'') + '\
+        <div class="form-group"> \
+          <div class="col-sm-' + (key==='all'?'6':'3') + '"><p class="form-control-static">' + info[key].name + '</p></div>' +
+          (key==='all'?'':'<div class="col-sm-3"><p class="form-control-static" id="clear-storage-' + key + '-updatetime"></p></div>') + ' \
+          <div class="col-sm-2"><p class="form-control-static" id="clear-storage-' + key + '-size"></p></div> \
+          <div class="col-sm-4"> \
+            <button class="btn btn-default" data-role="clear" data-storage-key="' + key + '">Clear</button>' +
+            (key === 'mydragon'?' <button class="btn btn-default" data-role="manage-mydragon">Manage</button>':'') + ' \
+          </div> \
+        </div>'
+      );
     }
+
+    $('#clear-storage-' + key + '-size').html(formatSize(info[key].size));
+    $('#clear-storage-' + key + '-updatetime').html(info[key].updateTime?moment(info[key].updateTime).fromNow():'');
   }
 }
 
 function onClearStorageClear(target) {
   var key = $(target).data('storage-key');
-  if (confirm('Are you sure to delete the data?')) {
+
+  if (!confirm('Are you sure to delete the data?')) {
+    return;
+  }
+
+  if (key === 'mydragon' && !confirm('Are you really sure to delete My Dragon data?\n\nAll your dragon settings will be erased.\n\nConsider to click "Manage" to manage your settings.')) {
+    return
+  }
+
+  if (key === 'all') {
+    if (!confirm('Are you really sure to delete ALL data from the site, including data not managed by this page?')) {
+      return;
+    }
+    ds.StorageManager.removeAll();
+    $(target).closest('.modal').modal('hide');
+  }
+  if (key === 'total') {
+    if (!confirm('Are you really sure to delete ALL data including your My Dragon data?\n\nAll your dragon settings will be erased.\n\nConsider to click "Manage" to manage your settings.')) {
+      return;
+    }
+    ds.StorageManager.removeTotal();
+    $(target).closest('.modal').modal('hide');
+  }
+  else {
     ds.StorageManager.removeItem(key);
     $('#clear-storage-' + key + '-size').html('');
     $('#clear-storage-' + key + '-updatetime').html('');
@@ -580,16 +608,21 @@ $(document).ready(function() {
     loadData(true);
   });
 
-  // set my dragon
-  $('[data-role="setmydragon"]').click(function(e) {
+  // Manage Mydragon
+  $(document).on('click', '[data-role="manage-mydragon"]', function(e) {
     e.stopPropagation();
-    onSetMyDragon();
+    onManageMydragon();
   });
 
   // save my dragon
   $('#input-mydragon [data-role="save"]').click(function(e) {
     e.stopPropagation();
-    onSetMyDragonSave();
+    onManageMydragonSave();
+  });
+
+
+  $('#input-mydragon [data-role="newsetting"]').bind('change', function(e) {
+    onManageMydragonChange();
   });
 
   // clear storage
@@ -599,11 +632,8 @@ $(document).ready(function() {
 
   $(document).on('click', '#clear-storage [data-role="clear"]', function(e) {
     e.stopPropagation();
+    e.preventDefault();
     onClearStorageClear(e.target);
-  });
-
-  $('#input-mydragon [data-role="newsetting"]').bind('change', function(e) {
-    onSetMyDragonChange();
   });
 
   $(document).on('click', '.jumbotron [data-role="close"]', function() {

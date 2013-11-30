@@ -524,20 +524,21 @@ org.ellab.dragonstory.loadEggData = function () {
 };
 
 org.ellab.dragonstory.StorageManager = {
+  settings: [
+    'breed', 'battle', 'egg', 'mydragon'
+  ],
+
   getStorageInfo: function() {
     function calcSize(s) {
-      return s?s.length:0;
+      return s?JSON.stringify(s).length:0;
     }
 
-    var settings = [
-      'breed', 'battle', 'egg', 'mydragon'
-    ];
-
     var result = {};
+    var totalSize = 0;
 
     if (localStorage) {
-      for (var i=0 ; i<settings.length ; i++) {
-        var key = settings[i];
+      for (var i=0 ; i<this.settings.length ; i++) {
+        var key = this.settings[i];
         var item = this.getItem(key);
         var size = calcSize(item);
         var version = 0;
@@ -550,13 +551,28 @@ org.ellab.dragonstory.StorageManager = {
         catch (err) {
         }
 
+        totalSize += size;
+
         result[key] = {
           key: key,
+          name: ds.capitalize(key),
           size: size,
           version: version,
           updateTime: updateTime
         };
       }
+
+      result['total'] = {
+        key: 'total',
+        name: 'Total',
+        size: totalSize
+      };
+
+      result['all'] = {
+        key: 'all',
+        name: 'All (' + document.location.host + ')',
+        size: JSON.stringify(localStorage).length
+      };
     }
 
     return result;
@@ -569,6 +585,22 @@ org.ellab.dragonstory.StorageManager = {
   removeItem: function(key) {
     if (localStorage) {
       localStorage.removeItem('ellab-dragonstory-' + key);
+    }
+  },
+
+  // empty all dragonstory storage
+  removeTotal: function(key) {
+    if (localStorage) {
+      for (var i=0 ; i<this.settings.length ; i++) {
+        localStorage.removeItem('ellab-dragonstory-' + this.settings[i]);
+      }
+    }
+  },
+
+  // empty the entire localStorage
+  removeAll: function(key) {
+    if (localStorage) {
+      localStorage.clear();
     }
   }
 };
