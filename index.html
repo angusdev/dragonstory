@@ -209,6 +209,12 @@ iframe[data-role=libiframe] {
         <span style="margin-left: 100px;">Select a dragon first</span>
         <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="parentname" id="parent-list"></div>
       </div>
+      <div class="form-group" data-role="result-filter" style="display:none;">
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-filter-owned">
+          <label class="btn btn-default"><input type="radio" name="parentfilter" value="*">All combinations</label>
+          <label class="btn btn-default active"><input type="radio" name="parentfilter" value="M" checked="true">Owned dragons only</label>
+        </div>
+      </div>
       <div class="form-group" style="margin-top:10px;">
         <div id="parent-result"></div>
       </div>
@@ -788,7 +794,69 @@ $(document).ready(function() {
 
   $(document.body).bind('ellab.parent.response', function(e, html) {
     if (html) {
+      $('#parenttab [data-role="result-filter"]').show();
+
       $('#parent-result').html(html);
+
+      // check mydragon
+      $('#parent-result table tr').each(function() {
+        var $cell0 = $(this.cells[0]);
+        var $cell3 = $(this.cells[3]);
+
+        if ($cell0.find('a').length === 0) {
+          // header row
+          return;
+        }
+
+        [$cell0, $cell3].forEach(function(item) {
+          var firstOwnedDragon = true;
+
+          item.find('a').each(function() {
+            var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+            if (dragon.owned()) {
+              $(dragon.badgeHTML()).css({ 'margin-left': '5px', 'margin-right': '5px' }).insertAfter(this);
+              this.setAttribute('data-parent-index', dragon.rarity() * 100 + dragon.maxlevel());
+
+              if (firstOwnedDragon) {
+                firstOwnedDragon = false;
+
+                // hide the previous "," or ", or" since previous dragons are all hidden
+                if (this.previousSibling) {
+                  this.previousSibling.setAttribute('data-not-owned-dragon', true);
+                  this.previousSibling.style.display = 'none';
+                }
+              }
+            }
+            else {
+              // remove previous
+              if (this.previousSibling) {
+                  this.previousSibling.setAttribute('data-not-owned-dragon', true);
+                  this.previousSibling.style.display = 'none';
+              }
+              this.setAttribute('data-not-owned-dragon', true);
+              this.style.display = 'none';
+            }
+          });
+        });
+
+        if ($cell0.find('[data-parent-index]').length && ($cell3.length === 0 || $cell3.find('[data-parent-index]').length)) {
+          ;
+        }
+        else {
+          this.setAttribute('data-not-owned-dragon', true);
+          this.style.display = 'none';
+        }
+      });
+    }
+  });
+
+  $('#parent-filter-owned :radio').change(function() {
+    var val = $('#parent-filter-owned :radio:checked').val();
+    if (val === '*') {
+      $('#parent-result [data-not-owned-dragon]').show();
+    }
+    else if (val === 'M') {
+      $('#parent-result [data-not-owned-dragon]').hide();
     }
   });
 

@@ -605,6 +605,43 @@ org.ellab.dragonstory.StorageManager = {
   }
 };
 
+org.ellab.dragonstory.DragonDBItem = function(id, breed, mydragon, egg) {
+  this.id = id;
+  this.breed = breed;
+  this.mydragon = mydragon;
+  this.egg = egg;
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.id = function() {
+  return this.id;
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.name = function() {
+  return this.breed?this.breed.name:'';
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.rarity = function() {
+  return this.breed?this.breed.rarity:null;
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.maxlevel = function() {
+  return (this.mydragon && this.mydragon.maxlevel)?this.mydragon.maxlevel:0;
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.owned = function() {
+  return (this.mydragon && this.mydragon.maxlevel);
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.badgeHTML = function() {
+  var rarityColor = ['', '#c09853', '#3a87ad', '#468847', '#468847'];
+  if (this.mydragon && this.mydragon.maxlevel) {
+    return '<span class="badge" style="background-color:' + rarityColor[this.breed.rarity] + ';">' + this.mydragon.maxlevel + '</span>';
+  }
+  else {
+    return '';
+  }
+};
+
 org.ellab.dragonstory.DragonDB = function() {
   this.reindex();
   this.eggs = {};
@@ -667,7 +704,7 @@ org.ellab.dragonstory.DragonDB.prototype.byName = function(name) {
 
   var dragonid = this.nameToIdIdx[name];
   if (dragonid) {
-    return { breed:breeds[dragonid], mydragon:g_mydragon.byID(dragonid), egg:this.eggs[name + ' Dragon'] };
+    return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon.byID(dragonid), this.eggs[name + ' Dragon']);
   }
   else {
     return null;
@@ -680,7 +717,7 @@ org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
   }
 
   if (dragonid) {
-    return { breed:breeds[dragonid], mydragon:g_mydragon.byID(dragonid), egg:this.eggs[breeds[dragonid].name + ' Dragon'] };
+    return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon.byID(dragonid), this.eggs[breeds[dragonid].name + ' Dragon']);
   }
   else {
     return null;
@@ -691,6 +728,7 @@ org.ellab.dragonstory.MyDragonItem = function(dragonid, levels) {
   this.dragonid = dragonid;
   this.levels = levels;
   this.maxlevel = 0;
+  this.badgeHTML = null;
 
   for (var i=10 ; i>=1 ; i--) {
     if (this.levels & (1 << (i-1))) {

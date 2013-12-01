@@ -82,9 +82,14 @@ function onParentRequest(e, dragonid) {
     // call the wikia function
     getPossibleParents();
 
+    var html = $('#content_findparents').html();
+
+    // add the <span/> to wrap the text for further processing, only wrap </yyy>xxx<zzz> don't wrap anytning >xxx</yy>
+    html = html.replace(/>\s*([^<]+)\s*(<[^/])/g, '><span>$1</span>$2');
+
     // re-style using a temp element, remove all inline style
     $('#parent-result')
-      .html($('#content_findparents').html())
+      .html(html)
       .find('table')
         .attr('style', '')
         .addClass("table table-striped table-condensed table-bordered")
