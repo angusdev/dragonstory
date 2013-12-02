@@ -846,8 +846,8 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
   }
 
   // split tbody and thead
-  html = html.replace('<tbody>', '<thead>');
-  html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
+  html = html.replace(/<tbody>/g, '<thead>');
+  html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
 
   // re-style table and remove all inline style
   $('#breed-result').html(html)
@@ -906,8 +906,8 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   }
 
   // split tbody and thead
-  html = html.replace('<tbody>', '<thead>');
-  html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
+  html = html.replace(/<tbody>/g, '<thead>');
+  html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
 
   // add the <span/> to wrap the text for further processing, only wrap </a>xxx<zzz>
   html = html.replace(/<\/a>\s*([^<]+)\s*(<[^/])/g, '</a><span>$1</span>$2');
