@@ -15,8 +15,6 @@ backupJqueryReady = null;
 </head>
 <body>
 <div id="wikia-used-controls" style="display:none;">
-  <div id="breed-result"></div>
-  <div id="parent-result"></div>
   <select id="breeddragons_dragon1choices"></select>
   <select id="breeddragons_dragon2choices"><select>
   <select id="breeddragons_incubationchoices"></select>
@@ -61,16 +59,7 @@ function onBreedRequest(e, dragonid1, dragonid2) {
 	  // call the wikia function
     getBreedingOutcome();
 
-    // re-style using a temp element, remove all inline style
-    $('#breed-result')
-      .html($('#content_breeddragons').html())
-      .find('table')
-        .attr('style', '')
-        .addClass("table table-striped table-condensed table-bordered")
-        .find('th')
-          .attr('style', 'text-align:center;');
-
-    window.parent.$('body').trigger('ellab.breed.response', [ $('#breed-result').html() ]);
+    window.parent.$('body').trigger('ellab.breed.response', [ $('#content_breeddragons').html() ]);
   }
 }
 
@@ -82,21 +71,7 @@ function onParentRequest(e, dragonid) {
     // call the wikia function
     getPossibleParents();
 
-    var html = $('#content_findparents').html();
-
-    // add the <span/> to wrap the text for further processing, only wrap </yyy>xxx<zzz> don't wrap anytning >xxx</yy>
-    html = html.replace(/>\s*([^<]+)\s*(<[^/])/g, '><span>$1</span>$2');
-
-    // re-style using a temp element, remove all inline style
-    $('#parent-result')
-      .html(html)
-      .find('table')
-        .attr('style', '')
-        .addClass("table table-striped table-condensed table-bordered")
-        .find('th')
-          .attr('style', 'text-align:center;');
-
-    window.parent.$('body').trigger('ellab.parent.response', [ $('#parent-result').html() ]);
+    window.parent.$('body').trigger('ellab.parent.response', [ $('#content_findparents').html() ]);
   }
 }
 

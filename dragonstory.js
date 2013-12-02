@@ -840,6 +840,134 @@ org.ellab.dragonstory.MyDragon.prototype.hasLevel = function(dragonSetting, leve
   return (dragonSetting & (1 << (level-1)))?true:false;
 };
 
+org.ellab.dragonstory.onBreedResponse = function(e, html) {
+  if (!html) {
+    return;
+  }
+
+  // split tbody and thead
+  html = html.replace('<tbody>', '<thead>');
+  html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
+
+  // re-style table and remove all inline style
+  $('#breed-result').html(html)
+    .find('table')
+      .attr('style', '')
+      .addClass("table table-striped table-condensed table-bordered")
+      .find('th')
+        .attr('style', 'text-align:center;');
+
+  // add badge
+  $('#breed-result tbody tr td:first-child a').each(function() {
+    var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+    if (dragon.owned()) {
+      $(dragon.badgeHTML()).insertAfter(this);
+    }
+  });
+
+  // highlight breeding result that is not owned
+  $('#breed-result tbody tr').filter(function() {
+    return this.cells[0].innerHTML.indexOf('badge') === -1;
+  }).addClass('success');
+
+  if ($('#breed-result tr').length <= 4) {
+    // hide the filter if only 3 result or less
+    $('#breedtab [data-role="result-filter"]').hide();
+  }
+  else {
+    $('#breedtab [data-role="result-filter"]').show();
+
+    // only show the types in result table
+    $('#breedtab [data-role="result-filter"] [data-role="dragon-type-btn-group"] label').show().filter(function() {
+      var typeimg = type_image_url[$(this).find(':radio').val()];
+      return (typeimg && html.indexOf(typeimg) === -1);
+    }).hide();
+
+    // only show the time in result table
+    $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').hide();
+    $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').first().show();
+    $('#breed-result tbody tr').each(function() {
+      var dragonIncubation = parseInt(this.cells[3].textContent, 10) * (this.cells[4].textContent.replace(/\s*/g, '') === 'seconds'?1:3600);
+      if (!isNaN(dragonIncubation)) {
+        if (dragonIncubation <= 3600) {
+          $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="<7200"]').closest('label').show();
+        }
+        else {
+          $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="' + dragonIncubation + '"]').closest('label').show();
+        }
+      }
+    });
+  }
+};
+
+org.ellab.dragonstory.onParentResponse = function(e, html) {
+  if (!html) {
+    return;
+  }
+
+  // split tbody and thead
+  html = html.replace('<tbody>', '<thead>');
+  html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
+
+  // add the <span/> to wrap the text for further processing, only wrap </a>xxx<zzz>
+  html = html.replace(/<\/a>\s*([^<]+)\s*(<[^/])/g, '</a><span>$1</span>$2');
+
+  // re-style table and remove all inline style
+  $('#parent-result').html(html)
+    .find('table')
+      .attr('style', '')
+      .addClass("table table-striped table-condensed table-bordered")
+      .find('th')
+        .attr('style', 'text-align:center;');
+
+  $('#parenttab [data-role="result-filter"]').show();
+
+  // check mydragon
+  $('#parent-result table tbody tr').each(function() {
+    var $cell0 = $(this.cells[0]);
+    var $cell3 = $(this.cells[3]);
+
+    [$cell0, $cell3].forEach(function(item) {
+      var firstOwnedDragon = true;
+
+      item.find('a').each(function() {
+        var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+        if (dragon.owned()) {
+          $(dragon.badgeHTML()).insertAfter(this);
+          this.setAttribute('data-parent-index', dragon.rarity() * 100 + dragon.maxlevel());
+
+          if (firstOwnedDragon) {
+            firstOwnedDragon = false;
+
+            // hide the previous "," or ", or" since previous dragons are all hidden
+            if (this.previousSibling) {
+              this.previousSibling.setAttribute('data-not-owned-dragon', true);
+              this.previousSibling.style.display = 'none';
+            }
+          }
+        }
+        else {
+          // remove previous
+          if (this.previousSibling) {
+              this.previousSibling.setAttribute('data-not-owned-dragon', true);
+              this.previousSibling.style.display = 'none';
+          }
+          this.setAttribute('data-not-owned-dragon', true);
+          this.style.display = 'none';
+        }
+      });
+    });
+
+    if ($cell0.find('[data-parent-index]').length && ($cell3.length === 0 || $cell3.find('[data-parent-index]').length)) {
+      // $cell3.length === 0 means it is the first table (i.e. can be bred using  one of the following ... )
+    }
+    else {
+      this.setAttribute('data-not-owned-dragon', true);
+      this.style.display = 'none';
+    }
+  });
+};
+
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
   function makeSaveString() {
     var saved = {};
