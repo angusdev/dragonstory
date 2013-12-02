@@ -814,7 +814,7 @@ $(document).ready(function() {
           item.find('a').each(function() {
             var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
             if (dragon.owned()) {
-              $(dragon.badgeHTML()).css({ 'margin-left': '5px', 'margin-right': '5px' }).insertAfter(this);
+              $(dragon.badgeHTML()).insertAfter(this);
               this.setAttribute('data-parent-index', dragon.rarity() * 100 + dragon.maxlevel());
 
               if (firstOwnedDragon) {

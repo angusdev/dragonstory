@@ -635,7 +635,7 @@ org.ellab.dragonstory.DragonDBItem.prototype.owned = function() {
 org.ellab.dragonstory.DragonDBItem.prototype.badgeHTML = function() {
   var rarityColor = ['', '#c09853', '#3a87ad', '#468847', '#468847'];
   if (this.mydragon && this.mydragon.maxlevel) {
-    return '<span class="badge" style="background-color:' + rarityColor[this.breed.rarity] + ';">' + this.mydragon.maxlevel + '</span>';
+    return '<span class="badge" style="margin:0 5px; background-color:' + rarityColor[this.breed.rarity] + ';">' + this.mydragon.maxlevel + '</span>';
   }
   else {
     return '';
@@ -728,7 +728,6 @@ org.ellab.dragonstory.MyDragonItem = function(dragonid, levels) {
   this.dragonid = dragonid;
   this.levels = levels;
   this.maxlevel = 0;
-  this.badgeHTML = null;
 
   for (var i=10 ; i>=1 ; i--) {
     if (this.levels & (1 << (i-1))) {
