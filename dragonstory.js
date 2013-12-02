@@ -966,6 +966,14 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
       this.style.display = 'none';
     }
   });
+
+    // insert the 'breed' button column
+    $('#parent-result table:eq(1) thead tr').each(function() {
+      $(this.cells[1]).after('<th>Breed</th>');
+    });
+    $('#parent-result table:eq(1) tbody tr').each(function() {
+      $(this.cells[1]).after('<td></td>');
+    });
 };
 
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
