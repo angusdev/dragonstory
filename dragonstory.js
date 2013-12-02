@@ -693,6 +693,10 @@ org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
   }
 };
 
+org.ellab.dragonstory.DragonDB.prototype.setMyDragon = function(mydragon) {
+  g_mydragon.set(mydragon);
+};
+
 org.ellab.dragonstory.DragonDB.prototype.setEggs = function(eggs) {
   this.eggs = eggs || {};
 };
@@ -860,7 +864,7 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   for (var dragonid in breeds) {
     var dragon = g_db.byID(dragonid);
     var breed = dragon.breed;
-    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + breed.name + '"><td>' + breed.name +
+    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + breed.name + '"><td>' + breed.name + dragon.badgeHTML() +
                  '</td><td>' + ds.getTypeHTML(breed.types, 16) +
                  '</td><td data-sort-value="' + breed.rarity + '">' + ds.getRarityDesc(breed.rarity) +
                  '</td><td data-sort-value="' + ds.getIncubationSeconds(breed.incubation) + '">' + ds.getIncubationText(breed.incubation) +
@@ -911,6 +915,10 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
       if (dragonCountSelector) {
         $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
       }
+
+      var $tr = $this.parent();
+      $tr.find('td:first-child span.badge').remove();
+      $tr.find('td:first-child').append(g_db.byID($tr.data('dragonid')).badgeHTML());
     });
   }
 };
@@ -930,8 +938,7 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
 
     tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.breed.name +
                  '" data-dragontype="' + dragon.breed.types.join(',') + '" data-dragonincubation="' +
-                 ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.breed.name +
-                 (g_db.byID(dragonid).mydragon.maxlevel?' <span class="badge">' + g_db.byID(dragonid).mydragon.maxlevel + '</span>':'') +
+                 ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.breed.name + dragon.badgeHTML() +
                  '</td><td>' + ((dragon.egg && dragon.egg.eggimg)?'<img src="' + dragon.egg.eggimg + '"/>':'') +
                  '</td><td>' + ds.getTypeHTML(dragon.breed.types) +
                  '</td><td data-sort-value="' + dragon.breed.rarity + '">' + ds.getRarityDesc(dragon.breed.rarity) +
