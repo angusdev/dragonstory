@@ -161,29 +161,36 @@ iframe[data-role=libiframe] {
     -->
     <div class="tab-pane active" id="breedtab">
       <iframe id="breedlib" src="breed-lib.html" data-role="libiframe"></iframe>
-      <div class="form-group">
-      </div>
-      <div class="form-group">
-        Dragon 1
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-1" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix1" data-for="#breed-list-1"></div>
-      </div>
-      <div class="form-group">
-        <span style="margin-left: 100px;">Select a dragon first</span>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname1" id="breed-list-1"></div>
-      </div>
-      <div class="form-group">
-        Dragon 2
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-2" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix2" data-for="#breed-list-2"></div>
-      </div>
-      <div class="form-group">
-        <span style="margin-left: 100px;">Select a dragon first</span>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname2" id="breed-list-2"></div>
-      </div>
-      <div class="form-group" data-role="result-filter" style="display:none;">
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-type-btn-group" data-radio-name="breedtype" id="breed-type-list" data-hasall="selected"></div>
+      <form class="form-horizontal">
         <div class="form-group"></div>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-incubation-btn-group" data-radio-name="breedincubation" id="breed-incubation-list" data-hasall="selected" data-min-hour="1"></div>
-      </div>
+        <div class="form-group row">
+          <div class="col-sm-12 col-lg-1"><p class="form-control-static">Dragon 1</p></div>
+          <div class="col-sm-12 col-lg-11 btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-1" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix1" data-for="#breed-list-1"></div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-12 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname1" id="breed-list-1"></div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-12 col-lg-1"><p class="form-control-static">Dragon 2</p></div>
+          <div class="col-sm-12 col-lg-11 btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-2" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix2" data-for="#breed-list-2"></div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-12 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="breedname2" id="breed-list-2"></div>
+        </div>
+        <div data-role="result-filter" style="display:none;">
+          <div class="form-group row">
+            <div class="col-sm-12"><p class="form-control-static">Filter Result:</p></div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-2"><p class="form-control-static">Type</p></div>
+            <div class="col-sm-10 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-type-btn-group" data-radio-name="breedtype" id="breed-type-list" data-hasall="selected"></div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-2"><p class="form-control-static">Incubation Time</p></div>
+            <div class="col-sm-10 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-incubation-btn-group" data-radio-name="breedincubation" id="breed-incubation-list" data-hasall="selected" data-min-hour="1"></div>
+          </div>
+        </div>
+      </form>
       <div class="form-group" style="margin-top:10px;">
         <div id="breed-result"></div>
       </div>
@@ -200,21 +207,23 @@ iframe[data-role=libiframe] {
        #
     -->
     <div class="tab-pane" id="parenttab">
-      <div class="form-group">
-      </div>
-      <div class="form-group">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="parentprefix" data-for="#parent-list" data-on-select-dragon="id"></div>
-      </div>
-      <div class="form-group">
-        <span style="margin-left: 100px;">Select a dragon first</span>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="parentname" id="parent-list"></div>
-      </div>
-      <div class="form-group" data-role="result-filter" style="display:none;">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="parent-filter-owned">
-          <label class="btn btn-default"><input type="radio" name="parentfilter" value="*">All combinations</label>
-          <label class="btn btn-default active"><input type="radio" name="parentfilter" value="M" checked="true">Owned dragons only</label>
+      <form class="form-horizontal">
+        <div class="form-group"></div>
+        <div class="form-group row">
+          <div class="col-sm-12 col-lg-1"><p class="form-control-static">Dragon 1</p></div>
+          <div class="col-sm-12 col-lg-11 btn-group btn-group-s" data-toggle="buttons" id="parent-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="parentprefix" data-for="#parent-list" data-on-select-dragon="id"></div>
         </div>
-      </div>
+        <div class="form-group row">
+          <div class="col-sm-12 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="parentname" id="parent-list"></div>
+        </div>
+        <div class="form-group row" data-role="result-filter" style="display:none;">
+          <div class="col-sm-1"><p class="form-control-static">Filter</p></div>
+          <div class="col-sm-11 btn-group btn-group-s" data-toggle="buttons" id="parent-filter-owned">
+            <label class="btn btn-default"><input type="radio" name="parentfilter" value="*">All combinations</label>
+            <label class="btn btn-default active"><input type="radio" name="parentfilter" value="M" checked="true">Owned dragons only</label>
+          </div>
+        </div>
+      </form>
       <div class="form-group" style="margin-top:10px;">
         <div id="parent-result"></div>
       </div>
@@ -230,28 +239,20 @@ iframe[data-role=libiframe] {
     -->
     <div class="tab-pane" id="battletab">
       <iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>
-      <div class="form-group">
-      </div>
-      <div class="form-group">
-        Opponent Dragon
-      </div>
-      <div class="form-group">
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battleprefix" data-for="#battle-list" data-on-select-dragon="id"></div>
-      </div>
-      <div class="form-group">
-        <span style="margin-left: 100px;">Select a dragon first</span>
-        <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="battlename" id="battle-list"></div>
-      </div>
-      <div class="form-group">
-        <div class="row">
-          <div class="col-sm-1 col-md-1">
-            <span class="label label-default">Level</span>
-          </div>
-          <div class="col-sm-11 col-md-11">
-            <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-level-btn-group" data-radio-name="dragonlevel" id="battle-level"></div>
-          </div>
+      <form class="form-horizontal">
+        <div class="form-group"></div>
+        <div class="form-group row">
+          <div class="col-sm-12 col-lg-1"><p class="form-control-static">Opponent</p></div>
+          <div class="col-sm-12 col-lg-11 btn-group btn-group-s" data-toggle="buttons" id="battle-prefix-list" data-role="dragon-prefix-btn-group" data-radio-name="battleprefix" data-for="#battle-list" data-on-select-dragon="id"></div>
         </div>
-      </div>
+        <div class="form-group row">
+          <div class="col-sm-12 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-name-btn-group" data-radio-name="battlename" id="battle-list"></div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-1"><p class="form-control-static">Level</p></div>
+          <div class="col-sm-11 btn-group btn-group-s" data-toggle="buttons" data-role="dragon-level-btn-group" data-radio-name="dragonlevel" id="battle-level"></div>
+        </div>
+      </form>
       <div class="form-group" style="margin-top:10px;">
         <div id="battle-result"></div>
       </div>
