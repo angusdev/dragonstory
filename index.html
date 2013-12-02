@@ -165,7 +165,7 @@ iframe[data-role=libiframe] {
       </div>
       <div class="form-group">
         Dragon 1
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list1" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix1" data-for="#breed-list-1"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-1" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix1" data-for="#breed-list-1"></div>
       </div>
       <div class="form-group">
         <span style="margin-left: 100px;">Select a dragon first</span>
@@ -173,7 +173,7 @@ iframe[data-role=libiframe] {
       </div>
       <div class="form-group">
         Dragon 2
-        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list2" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix2" data-for="#breed-list-2"></div>
+        <div class="btn-group btn-group-s" data-toggle="buttons" id="breed-prefix-list-2" data-role="dragon-prefix-btn-group" data-radio-name="breedprefix2" data-for="#breed-list-2"></div>
       </div>
       <div class="form-group">
         <span style="margin-left: 100px;">Select a dragon first</span>
@@ -688,24 +688,71 @@ $(document).ready(function() {
       #  #  #      #      #      #  ##           #    #   #  ##  #         #       # #   #      #   #   #  #
      ####   #       ###    ###    ## #           #     ####  # ##          #####    #     ###   #   #    ##
   */
-  $(document).on('change', '#breed-list-1 :radio, #breed-list-2 :radio', function(e) {
-    var dragonid1 = $('#breed-list-1 :checked').val();
-    var dragonid2 = $('#breed-list-2 :checked').val();
-    if (dragonid1 && dragonid2) {
-      $('#breed-result').empty();
-      document.getElementById('breedlib').contentWindow.$('body').trigger('ellab.breed.request', [ dragonid1, dragonid2 ]);    }
-  });
+  // Breed Tab Event
+  (function(){
+    // Change on dragon
+    $(document).on('change', '#breed-list-1 :radio, #breed-list-2 :radio', function(e) {
+      $(this).prop('checked', true);  // fix the bug in bootstrap that click checked radio will uncheck but fire change event
 
-  $('#breed-type-list').on('change', ':radio', function() {
-    var type = $('#breed-type-list :checked').val();
+      var dragonid1 = $('#breed-list-1 :checked').val();
+      var dragonid2 = $('#breed-list-2 :checked').val();
 
-    if (type) {
-      ds.resetRadio('#breed-incubation-list');
+      if (dragonid1 && dragonid2) {
+        $('#breed-result').empty();
+        document.getElementById('breedlib').contentWindow.$('body').trigger('ellab.breed.request', [ dragonid1, dragonid2 ]);    }
+    });
 
-      var typeimg = type_image_url[type];
-      if (typeimg) {
+    // handle switching between list-1 and list-2 on selectdragon event
+    var onBreedSelectDragonPrefix = 1;
+
+    $(document).on('click', '#breed-list-1 label', function() {
+      onBreedSelectDragonPrefix = 2;
+    });
+
+    $(document).on('click', '#breed-list-2 label', function() {
+      onBreedSelectDragonPrefix = 1;
+    });
+
+    $(document).bind('ellab.selectdragon', function(e, dragonid) {
+      ds.selectDragon('#breed-prefix-list-' + onBreedSelectDragonPrefix, dragonid);
+    });
+
+    // change on result filter
+    $('#breed-type-list').on('change', ':radio', function() {
+      var type = $('#breed-type-list :checked').val();
+
+      if (type) {
+        ds.resetRadio('#breed-incubation-list');
+
+        var typeimg = type_image_url[type];
+        if (typeimg) {
+          $('#breed-result tbody tr').each(function() {
+            if (this.innerHTML.indexOf(typeimg) !== -1) {
+              $(this).show();
+            }
+            else {
+              $(this).hide();
+            }
+          });
+        }
+      }
+    });
+
+    $('#breed-incubation-list').on('change', ':radio', function() {
+      var incubation = ds.getIncubationBtnSelectedRange('#breed-incubation-list');
+
+      if (incubation) {
+        ds.resetRadio('#breed-type-list');
+
         $('#breed-result tbody tr').each(function() {
-          if (this.innerHTML.indexOf(typeimg) !== -1) {
+          var dragonIncubation = parseInt(this.cells[3].textContent, 10) * (this.cells[4].textContent.replace(/\s*/g, '') === 'seconds'?1:3600);
+          if (isNaN(dragonIncubation)) {
+            return;
+          }
+
+          var incubationMatch = dragonIncubation && dragonIncubation > 0 && (incubation === '*' || (dragonIncubation >= incubation.from && dragonIncubation < incubation.to));
+
+          if (incubationMatch) {
             $(this).show();
           }
           else {
@@ -713,67 +760,45 @@ $(document).ready(function() {
           }
         });
       }
-    }
-  });
+    });
 
-  $('#breed-incubation-list').on('change', ':radio', function() {
-    var incubation = ds.getIncubationBtnSelectedRange('#breed-incubation-list');
+    // The breed response handler
+    $(document.body).bind('ellab.breed.response', function(e, html) {
+      if (html) {
+        $('#breed-result').html(html);
 
-    if (incubation) {
-      ds.resetRadio('#breed-type-list');
-
-      $('#breed-result tbody tr').each(function() {
-        var dragonIncubation = parseInt(this.cells[3].textContent, 10) * (this.cells[4].textContent.replace(/\s*/g, '') === 'seconds'?1:3600);
-        if (isNaN(dragonIncubation)) {
-          return;
-        }
-
-        var incubationMatch = dragonIncubation && dragonIncubation > 0 && (incubation === '*' || (dragonIncubation >= incubation.from && dragonIncubation < incubation.to));
-
-        if (incubationMatch) {
-          $(this).show();
+        if ($('#breed-result tr').length <= 4) {
+          // hide the filter if only 3 result or less
+          $('#breedtab [data-role="result-filter"]').hide();
         }
         else {
-          $(this).hide();
+          $('#breedtab [data-role="result-filter"]').show();
+
+          // only show the types in result table
+          $('#breedtab [data-role="result-filter"] [data-role="dragon-type-btn-group"] label').show().filter(function() {
+            var typeimg = type_image_url[$(this).find(':radio').val()];
+            return (typeimg && html.indexOf(typeimg) === -1);
+          }).hide();
+
+          // only show the time in result table
+          $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').hide();
+          $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').first().show();
+          $('#breed-result tbody tr').each(function() {
+            var dragonIncubation = parseInt(this.cells[3].textContent, 10) * (this.cells[4].textContent.replace(/\s*/g, '') === 'seconds'?1:3600);
+            if (!isNaN(dragonIncubation)) {
+              if (dragonIncubation <= 3600) {
+                $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="<7200"]').closest('label').show();
+              }
+              else {
+                $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="' + dragonIncubation + '"]').closest('label').show();
+              }
+            }
+          });
         }
-      });
-    }
-  });
-
-  $(document.body).bind('ellab.breed.response', function(e, html) {
-    if (html) {
-      $('#breed-result').html(html);
-
-      if ($('#breed-result tr').length <= 4) {
-        // hide the filter if only 3 result or less
-        $('#breedtab [data-role="result-filter"]').hide();
       }
-      else {
-        $('#breedtab [data-role="result-filter"]').show();
-
-        // only show the types in result table
-        $('#breedtab [data-role="result-filter"] [data-role="dragon-type-btn-group"] label').show().filter(function() {
-          var typeimg = type_image_url[$(this).find(':radio').val()];
-          return (typeimg && html.indexOf(typeimg) === -1);
-        }).hide();
-
-        // only show the time in result table
-        $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').hide();
-        $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] label').first().show();
-        $('#breed-result tbody tr').each(function() {
-          var dragonIncubation = parseInt(this.cells[3].textContent, 10) * (this.cells[4].textContent.replace(/\s*/g, '') === 'seconds'?1:3600);
-          if (!isNaN(dragonIncubation)) {
-            if (dragonIncubation <= 3600) {
-              $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="<7200"]').closest('label').show();
-            }
-            else {
-              $('#breedtab [data-role="result-filter"] [data-role="dragon-incubation-btn-group"] :radio[value="' + dragonIncubation + '"]').closest('label').show();
-            }
-          }
-        });
-      }
-    }
-  });
+    });
+  })();
+  // Breed Tab Event
 
   /*
      ####                                #            #####         #             #####                        #
