@@ -1040,6 +1040,91 @@ org.ellab.dragonstory.onParentBreedBtn = function() {
   }
 };
 
+org.ellab.dragonstory.onBattleResponse = function(e, html) {
+  if (!html) {
+    return;
+  }
+
+  // split tbody and thead
+  html = html.replace(/<tbody>/g, '<thead>');
+  html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
+
+  // add target="_blank" to all links
+  html = html.replace(/<a /g, '<a target="_blank" ');
+
+  // remove inline style
+  html = html.replace(/\s*style="[^"]*"+s*/g, '');
+
+  // hide the 10% cells to reduce the noise
+  html = html.replace(/>10%</g, '');
+
+  if (g_mydragon.dragonCount > 0) {
+    // add extra 'mydragon chance' column
+    html = html.replace(/<\/th>/, '</th><th style="text-align:center;">My</th>');
+    html = html.replace(/(<\/a>\s*<\/td>)/g, '$1<td></td>');
+  }
+
+  $('#battle-result').html(html)
+    .find('table')
+      .addClass("table table-striped table-condensed table-bordered")
+      .find('tr').filter(function() {
+        // level 10 is 10% (i.e. textContent === '', removed in above) means all level is 10%, remove this tr
+        // note the if g_mydragon.dragonCount > 0 we already added a column in front of lvl 10
+        return this.cells[(g_mydragon.dragonCount>0?2:1)].textContent === '';
+      }).remove();
+
+  if (g_mydragon.dragonCount > 0) {
+    $('#battle-result tbody tr').each(function() {
+      // use dom instead of jquery to improve performance
+      // for one particular case (Fairy Dragon, level 10), change from 6xxx ms to 16ms
+      var dragon = g_db.byName(this.cells[0].textContent);
+      if (dragon.owned()) {
+        // add badge
+        $(dragon.badgeHTML()).insertAfter($(this.cells[0]).find('a'));
+
+        // highlight the best change cell
+        var td = this.cells[(10 - dragon.mydragon.maxlevel + 2)];
+        if (td.textContent) {
+          td.className += ' success';
+          this.cells[1].className += ' warning';
+          this.cells[1].innerHTML = td.innerHTML;
+        }
+        else {
+          // owned but only 10% change, hide the row
+          this.style.display = 'none';
+        }
+      }
+      else {
+        // not own this dragon, hide the row
+        this.style.display = 'none';
+      }
+    });
+
+    // sort table now
+    var sortArray = [];
+    $('#battle-result tbody tr').each(function(i) {
+      sortArray.push({pct:parseInt(this.cells[1].textContent, 10), name:this.cells[0].textContent, tr:this});
+    });
+    sortArray.sort(function(a, b) {
+      var p1 = a.pct || 0;
+      var p2 = b.pct || 0;
+      if (p1 === p2) {
+        return a.name < b.name?-1:1;
+      }
+      else {
+       return p2 - p1;
+      }
+    });
+
+    var newtbody = document.createElement('TBODY');
+    sortArray.forEach(function(ele) {
+      newtbody.appendChild(ele.tr);
+    });
+    $('#battle-result tbody').remove();
+    $('#battle-result table').append(newtbody);
+  }
+};
+
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
   function makeSaveString() {
     var saved = {};

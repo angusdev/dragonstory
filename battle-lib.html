@@ -7,7 +7,6 @@
 </head>
 <body>
 <div id="wikia-used-controls" style="display:none;">
-  <div id="result"></div>
   <select id="select_opponent"></select>
   <select id="select_opponent_level"></select>
   <div id="form_opponent"></div>
@@ -44,32 +43,7 @@ function onBattleRequest(e, dragonid, level) {
     // call the wikia function
     calculateScores();
 
-    // remove the 10% dragons to reduce the result size
-    $('#content_scores tr').filter(function() {
-      // level 10 is 10% means all level is 10%
-      return this.cells[1].textContent === '10%';
-    }).remove();
-
-    var html = $('#content_scores').html();
-
-    // hide the 10% cells to reduce the noise
-    html = html.replace(/>10%</g, '');
-
-    html = html.replace('<tbody>', '<thead>');
-    html = html.replace('</th></tr>', '</th></tr></thead><tbody>');
-
-    // re-style using a temp element, remove all inline style
-    html = html.replace(/\s*style="text-align:center;"+s*/g, '');
-
-    $('#result')
-      .html(html)
-      .find('table')
-        .attr('style', '')
-        .addClass("table table-striped table-condensed table-bordered")
-        .find('th')
-          .attr('style', '');
-
-    window.parent.$('body').trigger('ellab.battle.response', [ $('#result').html() ]);
+    window.parent.$('body').trigger('ellab.battle.response', [ $('#content_scores').html() ]);
   }
 }
 </script>
