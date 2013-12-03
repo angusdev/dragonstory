@@ -932,13 +932,6 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
       item.find('a').each(function() {
         var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
 
-        // order by (1) owned > not owned (2) rarity (3) level
-        var breedPriority = dragon.rarity() * 100 * (dragon.maxlevel()>0?1:0) + dragon.maxlevel() * 10 + dragon.rarity();
-        //console.log(dragon.dragonid(), breedPriority, item.data('breed-priority'));
-        if (breedPriority > (item.data('breed-priority') || 0)) {
-          item.data('breed-priority', breedPriority).data('breed-dragonid', dragon.dragonid());
-        }
-
         if (dragon.owned()) {
           $(dragon.badgeHTML()).insertAfter(this);
 
@@ -984,6 +977,38 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   $('#parent-result table:eq(1) thead tr').each(function() {
     $(this.cells[1]).after('<th>Breed</th>');
   });
+};
+
+// Handle the breed btn in parent tab
+// find the highest breed priority dragons and call the breed tab to show the breed result
+org.ellab.dragonstory.onParentBreedBtn = function() {
+  function getDragonToBreed(td) {
+    var maxPriority = 0;
+    var dragonid = null;
+    $(td).find('a').each(function() {
+      var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+
+      // order by (1) owned > not owned (2) rarity (3) level
+      var breedPriority = dragon.rarity() * 100 * (dragon.maxlevel()>0?1:0) + dragon.maxlevel() * 10 + dragon.rarity();
+      if (breedPriority > maxPriority) {
+        maxPriority = breedPriority;
+        dragonid = dragon.dragonid();
+      }
+    });
+
+    return dragonid;
+  }
+
+  var dragon1 = getDragonToBreed($(this).closest('tr')[0].cells[0]);
+  var dragon2 = getDragonToBreed($(this).closest('tr')[0].cells[4]);
+
+  if (dragon1 && dragon2) {
+    // reset the second dragon list to avoid double breed requests on below select dragon
+    ds.resetRadio('#breed-list-2');
+    ds.selectDragon('#breed-prefix-list-1', dragon1);
+    ds.selectDragon('#breed-prefix-list-2', dragon2);
+    $('.nav-tabs a[href=#breedtab][data-toggle="tab"]').click();
+  }
 };
 
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
