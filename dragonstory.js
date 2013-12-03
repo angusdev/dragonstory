@@ -869,18 +869,20 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
       .find('th')
         .attr('style', 'text-align:center;');
 
-  // add badge
-  $('#breed-result tbody tr td:first-child a').each(function() {
-    var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
-    if (dragon.owned()) {
-      $(dragon.badgeHTML()).insertAfter(this);
-    }
-  });
+  if (g_mydragon.dragonCount > 0) {
+    // add badge
+    $('#breed-result tbody tr td:first-child a').each(function() {
+      var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+      if (dragon.owned()) {
+        $(dragon.badgeHTML()).insertAfter(this);
+      }
+    });
 
-  // highlight breeding result that is not owned
-  $('#breed-result tbody tr').filter(function() {
-    return this.cells[0].innerHTML.indexOf('badge') === -1;
-  }).addClass('success');
+    // highlight breeding result that is not owned
+    $('#breed-result tbody tr').filter(function() {
+      return this.cells[0].innerHTML.indexOf('badge') === -1;
+    }).addClass('success');
+  }
 
   if ($('#breed-result tr').length <= 4) {
     // hide the filter if only 3 result or less
@@ -935,63 +937,74 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
       .find('th')
         .attr('style', 'text-align:center;');
 
-  $('#parenttab [data-role="result-filter"]').show();
+  if (g_mydragon.dragonCount > 0) {
+    // if didn't set my dragon, don't do filtering and no need to show filter
+    $('#parenttab [data-role="result-filter"]').show();
 
-  // check mydragon
-  $('#parent-result table tbody tr').each(function() {
-    var $cell0 = $(this.cells[0]);
-    var $cell3 = $(this.cells[3]);
+    // check mydragon
+    $('#parent-result table tbody tr').each(function() {
+      var $cell0 = $(this.cells[0]);
+      var $cell3 = $(this.cells[3]);
 
-    [$cell0, $cell3].forEach(function(item, cellidx) {
-      var firstOwnedDragon = true;
+      [$cell0, $cell3].forEach(function(item, cellidx) {
+        var firstOwnedDragon = true;
 
-      item.find('a').each(function() {
-        var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+        item.find('a').each(function() {
+          var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
 
-        if (dragon.owned()) {
-          $(dragon.badgeHTML()).insertAfter(this);
+          if (dragon.owned()) {
+            $(dragon.badgeHTML()).insertAfter(this);
 
-          if (firstOwnedDragon) {
-            firstOwnedDragon = false;
+            if (firstOwnedDragon) {
+              firstOwnedDragon = false;
 
-            // hide the previous "," or ", or" since previous dragons are all hidden
-            if (this.previousSibling) {
-              this.previousSibling.setAttribute('data-not-owned-dragon', true);
-              this.previousSibling.style.display = 'none';
+              // hide the previous "," or ", or" since previous dragons are all hidden
+              if (this.previousSibling) {
+                this.previousSibling.setAttribute('data-not-owned-dragon', true);
+                this.previousSibling.style.display = 'none';
+              }
             }
           }
-        }
-        else {
-          // remove previous
-          if (this.previousSibling) {
-              this.previousSibling.setAttribute('data-not-owned-dragon', true);
-              this.previousSibling.style.display = 'none';
+          else {
+            // remove previous
+            if (this.previousSibling) {
+                this.previousSibling.setAttribute('data-not-owned-dragon', true);
+                this.previousSibling.style.display = 'none';
+            }
+            this.setAttribute('data-not-owned-dragon', true);
+            this.style.display = 'none';
           }
-          this.setAttribute('data-not-owned-dragon', true);
-          this.style.display = 'none';
-        }
+        });
       });
+
+      if ($cell0.find('.badge').length && ($cell3.length === 0 || $cell3.find('.badge').length)) {
+        // $cell3.length === 0 means it is the first table (i.e. can be breed using one of the following ... )
+      }
+      else {
+        this.setAttribute('data-not-owned-dragon', true);
+        this.style.display = 'none';
+      }
     });
-
-    if ($cell0.find('.badge').length && ($cell3.length === 0 || $cell3.find('.badge').length)) {
-      // $cell3.length === 0 means it is the first table (i.e. can be breed using one of the following ... )
-    }
-    else {
-      this.setAttribute('data-not-owned-dragon', true);
-      this.style.display = 'none';
-    }
-
-    if ($cell3.length > 0) {
-      // the second table, can be bred using one of the following n pairs
-      var dragonid1 = $cell0.data('breed-dragonid');
-      var dragonid2 = $cell3.data('breed-dragonid');
-      $(this.cells[1]).after('<td><button data-role="do-breed" data-dragon-1="' + dragonid1 + '" data-dragon-2="' + dragonid2 + '">Breed</button></td>');
-    }
-  });
+  }
 
   // insert the 'breed' button column
-  $('#parent-result table:eq(1) thead tr').each(function() {
-    $(this.cells[1]).after('<th>Breed</th>');
+  // there can be 3 tables (e.g. choose Goblin)
+  // only add the breed button in last type (i.e. 4 columns table)
+  // - The xxx Dragon can be bred by pairing one of the following n dragons with any dragon that provides at least one different type.
+  //   | Dragons | Types |
+  // - The xxx Dragon can be bred by pairing one of the following n dragons with any other dragon
+  //   | Dragons | Types |
+  // - The xxx Dragon can be bred using one of the following n pairs.
+  //   | Group A Dragons | Graop A Types | Group B Types | Group B Dragons |
+  $('#parent-result table:eq(1) thead tr, #parent-result table:eq(2) thead tr').each(function() {
+    if (this.cells.length === 4) {
+      $(this.cells[1]).after('<th>Breed</th>');
+    }
+  });
+  $('#parent-result table:eq(1) tbody tr, #parent-result table:eq(2) tbody tr').each(function() {
+    if (this.cells.length === 4) {
+      $(this.cells[1]).after('<td><button data-role="do-breed">Breed</button></td>');
+    }
   });
 };
 
