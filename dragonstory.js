@@ -619,6 +619,16 @@ org.ellab.dragonstory.DragonDBItem.prototype.name = function() {
   return this.breed?this.breed.name:'';
 };
 
+org.ellab.dragonstory.DragonDBItem.prototype.wikiaURL = function() {
+  return this.breed && this.breed.name?'http://dragon-story.wikia.com/wiki/' + this.breed.name.replace(/\s/g, '_') + '_Dragon':'';
+};
+
+org.ellab.dragonstory.DragonDBItem.prototype.nameWithURL = function() {
+  return this.breed && this.breed.name?
+    '<a href="http://dragon-story.wikia.com/wiki/' + this.breed.name.replace(/\s/g, '_') + '_Dragon" target="_blank">' + this.breed.name + '</a>'
+    :'';
+};
+
 org.ellab.dragonstory.DragonDBItem.prototype.rarity = function() {
   return this.breed?this.breed.rarity:null;
 };
@@ -848,6 +858,9 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
   html = html.replace(/<tbody>/g, '<thead>');
   html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
 
+  // add target="_blank" to all links
+  html = html.replace(/<a /g, '<a target="_blank" ');
+
   // re-style table and remove all inline style
   $('#breed-result').html(html)
     .find('table')
@@ -907,6 +920,9 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   // split tbody and thead
   html = html.replace(/<tbody>/g, '<thead>');
   html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
+
+  // add target="_blank" to all links
+  html = html.replace(/<a /g, '<a target="_blank" ');
 
   // add the <span/> to wrap the text for further processing, only wrap </a>xxx<zzz>
   html = html.replace(/<\/a>\s*([^<]+)\s*(<[^\/])/g, '</a><span>$1</span>$2');
@@ -1035,7 +1051,7 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   for (var dragonid in breeds) {
     var dragon = g_db.byID(dragonid);
     var breed = dragon.breed;
-    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + breed.name + '"><td>' + breed.name + dragon.badgeHTML() +
+    tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + breed.name + '"><td>' + dragon.nameWithURL() + dragon.badgeHTML() +
                  '</td><td>' + ds.getTypeHTML(breed.types, 16) +
                  '</td><td data-sort-value="' + breed.rarity + '">' + ds.getRarityDesc(breed.rarity) +
                  '</td><td data-sort-value="' + ds.getIncubationSeconds(breed.incubation) + '">' + ds.getIncubationText(breed.incubation) +
@@ -1109,7 +1125,7 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
 
     tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.breed.name +
                  '" data-dragontype="' + dragon.breed.types.join(',') + '" data-dragonincubation="' +
-                 ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.breed.name + dragon.badgeHTML() +
+                 ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.nameWithURL() + dragon.badgeHTML() +
                  '</td><td>' + ((dragon.egg && dragon.egg.eggimg)?'<img src="' + dragon.egg.eggimg + '"/>':'') +
                  '</td><td>' + ds.getTypeHTML(dragon.breed.types) +
                  '</td><td data-sort-value="' + dragon.breed.rarity + '">' + ds.getRarityDesc(dragon.breed.rarity) +
