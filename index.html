@@ -300,7 +300,7 @@ iframe[data-role=libiframe] {
         <div class="btn-group btn-group-s" data-toggle="buttons" data-role="dragon-incubation-btn-group" data-radio-name="dragondbincubation" id="dragondb-incubation-list" data-hasall="true" data-min-hour="1"></div>
       </div>
       <div class="form-group" data-role="dragon-count-text"></div>
-      <div id="dragondb-result"></div>
+      <div id="dragondb-result" data-role="result"></div>
     </div>
   </div>
 
@@ -923,7 +923,7 @@ $(document).ready(function() {
       ds.buildDragonDB('#dragondb-result');
     }
 
-    ds.onDragonDBChange(this, '#dragondbtab');
+    ds.onDragonDBChange(this);
   });
 
   $(document).bind('ellab.selectdragon', function(e, dragonid) {

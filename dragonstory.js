@@ -1101,26 +1101,24 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
   });
 };
 
-org.ellab.dragonstory.onDragonDBChange = function(target, containerSelector) {
-  var $container = $(containerSelector);
-
+org.ellab.dragonstory.onDragonDBChange = function(target) {
   var targetName = target.getAttribute('name');
   if (targetName !== 'dragondbprefix') {
-    ds.resetRadio($container.find('[data-role="dragon-prefix-btn-group"]'), true);
+    ds.resetRadio('#dragondbtab [data-role="dragon-prefix-btn-group"]', true);
   }
   if (targetName !== 'dragondbtype') {
-    ds.resetRadio($container.find('[data-role="dragon-type-btn-group"]'), true);
+    ds.resetRadio('#dragondbtab [data-role="dragon-type-btn-group"]', true);
   }
   if (targetName !== 'dragondbincubation') {
-    ds.resetRadio($container.find('[data-role="dragon-incubation-btn-group"]'), true);
+    ds.resetRadio('#dragondbtab [data-role="dragon-incubation-btn-group"]', true);
   }
 
-  var prefix = $container.find('[data-role="dragon-prefix-btn-group"] :checked').val();
-  var type = $container.find('[data-role="dragon-type-btn-group"] :checked').val();
-  var incubation = ds.getIncubationBtnSelectedRange($container.find('[data-role="dragon-incubation-btn-group"]'));
+  var prefix = $('#dragondbtab [data-role="dragon-prefix-btn-group"] :checked').val();
+  var type = $('#dragondbtab [data-role="dragon-type-btn-group"] :checked').val();
+  var incubation = ds.getIncubationBtnSelectedRange('#dragondbtab [data-role="dragon-incubation-btn-group"]');
 
   if (prefix || type || incubation) {
-    $container.find('[data-role="result"] tbody tr').each(function() {
+    $('#dragondb-result tbody tr').each(function() {
       var $this = $(this);
 
       var dragonName = $this.data('dragonname') + '';  // "Infinity" will become number
