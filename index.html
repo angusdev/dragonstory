@@ -73,7 +73,7 @@ iframe[data-role=libiframe] {
   width: 100%;
 }
 
-#battle-result td, #battle-result th {
+#parent-result td, #battle-result td {
   text-align: center;
 }
 
@@ -105,7 +105,7 @@ iframe[data-role=libiframe] {
       <li>
         <div class="navbar-form">
           <div class="form-group">
-            <input type="text" class="form-control" placeholder="Search" data-role="search-dragon">
+            <input type="text" class="form-control" placeholder="Search" data-role="search-dragon" autofocus="autofocus" />
           </div>
         </div>
       </li>
@@ -955,6 +955,9 @@ $(document).ready(function() {
     if (libBreedReady && libBattleReady) {
       loadData();
     }
+
+    // loadData() will eventually call 'click' so lost the focus
+    window.setTimeout(function() { $('[autofocus]').first().focus(); }, 0);
   });
 
   // switch to the tab in hash
@@ -967,7 +970,6 @@ $(document).ready(function() {
   $('.nav-tabs').on('click', '[data-toggle="tab"]', function (e) {
     window.location.hash = e.target.hash;
   })
-
 });
 </script>
 </html>
