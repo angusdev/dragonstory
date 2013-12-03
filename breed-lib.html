@@ -29,7 +29,7 @@ backupJqueryReady = null;
 </body>
 <script>
 $(document).ready(function() {
-  $(document.body).bind('ellabBreedDataChanged', function(e, data) {
+  $(document.body).bind('ellab.breed.data.changed', function(e, data) {
     onBreedDataChanged(data);
   });
 

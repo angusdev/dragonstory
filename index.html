@@ -4,14 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>Dragon Story</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="jquery.xdomainajax.ellab-1.0.js"></script>
-<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-<script src="//cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
-<script src="//cdn.jsdelivr.net/hogan.js/2.0.0/hogan.common.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
-<script src="dragonstory.js"></script>
 <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="bootstrap-more.css">
 <lin1k rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/css/theme.blue.css">
@@ -161,7 +153,6 @@ iframe[data-role=libiframe] {
        # ##   #       ###    ###    ## #    ##    ####  # ##
     -->
     <div class="tab-pane active" id="breedtab">
-      <iframe id="breedlib" src="breed-lib.html" data-role="libiframe"></iframe>
       <form class="form-horizontal">
         <div class="form-group"></div>
         <div class="form-group row">
@@ -238,7 +229,6 @@ iframe[data-role=libiframe] {
        # ##    ####    ##     ##    ###    ###     ##    ####  # ##
     -->
     <div class="tab-pane" id="battletab">
-      <iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>
       <form class="form-horizontal">
         <div class="form-group"></div>
         <div class="form-group row">
@@ -354,6 +344,14 @@ iframe[data-role=libiframe] {
     </div>
   </div>
 </div> <!-- #input-mydragon -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="jquery.xdomainajax.ellab-1.0.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+<script src="//cdn.jsdelivr.net/typeahead.js/0.9.3/typeahead.min.js"></script>
+<script src="//cdn.jsdelivr.net/hogan.js/2.0.0/hogan.common.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
+<script src="dragonstory.js"></script>
 </body>
 <script>
 var ds = org.ellab.dragonstory;
@@ -365,8 +363,8 @@ function loadData(reload) {
   $('#dragon-count').html('Loading...');
 
   $('iframe[role="libiframe"]').each(function(){
-    this.contentWindow.$('body').trigger('ellabBreedDataBeforeLoad');
-    this.contentWindow.$('body').trigger('ellabBattleDataBeforeLoad');
+    this.contentWindow.$('body').trigger('ellab.breed.data.beforeload');
+    this.contentWindow.$('body').trigger('ellab.battle.data.beforeload');
   });
 
   if (reload) {
@@ -484,8 +482,8 @@ function loadData(reload) {
 
     $('iframe[data-role="libiframe"]').each(function(){
       this.contentWindow.$('body')
-        .trigger('ellabBreedDataChanged', [ breed ] )
-        .trigger('ellabBattleDataChanged', [ battle ] );
+        .trigger('ellab.breed.data.changed', [ breed ] )
+        .trigger('ellab.battle.data.changed', [ battle ] );
     });
   });
 }
@@ -971,7 +969,12 @@ $(document).ready(function() {
   // Change hash for page-reload
   $('.nav-tabs').on('click', '[data-toggle="tab"]', function (e) {
     window.location.hash = e.target.hash;
-  })
+  });
+
+  // Everything ready
+  $(document.body).append('<iframe id="breedlib" src="breed-lib.html" data-role="libiframe"></iframe>')
+                  .append('<iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>');
+
 });
 </script>
 </html>
