@@ -858,16 +858,16 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
   html = html.replace(/<tbody>/g, '<thead>');
   html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
 
+  // remove inline style
+  html = html.replace(/\s*style="[^"]*"+s*/g, '');
+
   // add target="_blank" to all links
   html = html.replace(/<a /g, '<a target="_blank" ');
 
   // re-style table and remove all inline style
   $('#breed-result').html(html)
     .find('table')
-      .attr('style', '')
-      .addClass("table table-striped table-condensed table-bordered")
-      .find('th')
-        .attr('style', 'text-align:center;');
+      .addClass("table table-striped table-condensed table-bordered");
 
   if (g_mydragon.dragonCount > 0) {
     // add badge
@@ -926,16 +926,16 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   // add target="_blank" to all links
   html = html.replace(/<a /g, '<a target="_blank" ');
 
+  // remove inline style
+  html = html.replace(/\s*style="[^"]*"+s*/g, '');
+
   // add the <span/> to wrap the text for further processing, only wrap </a>xxx<zzz>
   html = html.replace(/<\/a>\s*([^<]+)\s*(<[^\/])/g, '</a><span>$1</span>$2');
 
   // re-style table and remove all inline style
   $('#parent-result').html(html)
     .find('table')
-      .attr('style', '')
-      .addClass("table table-striped table-condensed table-bordered")
-      .find('th')
-        .attr('style', 'text-align:center;');
+      .addClass("table table-striped table-condensed table-bordered");
 
   if (g_mydragon.dragonCount > 0) {
     // if didn't set my dragon, don't do filtering and no need to show filter
