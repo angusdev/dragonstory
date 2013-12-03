@@ -916,34 +916,14 @@ $(document).ready(function() {
                            ###
   */
   $('#dragondb-prefix-list, #dragondb-type-list, #dragondb-incubation-list').on('change', ':radio', function() {
+    $(this).prop('checked', true);  // fix the bug in bootstrap that click checked radio will uncheck but fire change event
+
     if ($('#dragondb-result tbody tr').length === 0) {
       console.log('buildDragonDB');
       ds.buildDragonDB('#dragondb-result');
     }
 
-    var prefix = $('#dragondb-prefix-list :checked').val() || '*';
-    var type = $('#dragondb-type-list :checked').val() || '*';
-    var incubation = ds.getIncubationBtnSelectedRange('#dragondb-incubation-list');
-    if (prefix && type && incubation) {
-      $('#dragondb-result tbody tr').each(function() {
-        var $this = $(this);
-
-        var dragonName = $this.data('dragonname') + '';  // "Infinity" will become number
-        var dragonType = $this.data('dragontype');
-        var dragonIncubation = $this.data('dragonincubation');
-
-        var nameMatch = dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase());
-        var typeMatch = dragonType && dragonType.length > 0 && (type === '*' || $.inArray(type, dragonType.split(',')) !== -1);
-        var incubationMatch = dragonIncubation && dragonIncubation > 0 && (incubation === '*' || (dragonIncubation >= incubation.from && dragonIncubation < incubation.to));
-
-        if (nameMatch && typeMatch && incubationMatch) {
-          $this.show();
-        }
-        else {
-          $this.hide();
-        }
-      });
-    }
+    ds.onDragonDBChange(this, '#dragondbtab');
   });
 
   $(document).bind('ellab.selectdragon', function(e, dragonid) {

@@ -113,7 +113,6 @@ org.ellab.dragonstory.makeDragonBtns = function() {
 
 org.ellab.dragonstory.makeDragonBtn = function() {
   var $btngroup = $('[data-role="dragon-prefix-btn-group"]');
-
   $btngroup.each(function() {
     var $this = $(this);
 
@@ -122,14 +121,12 @@ org.ellab.dragonstory.makeDragonBtn = function() {
       $this.append('<label class="btn btn-default' + (hasall==='selected'?' active':'') + '"><input type="radio" name="' +
                    $this.data('radio-name') + '" value="*">All</label>');
     }
-  });
-  for (var i=0 ; i<26 ; i++) {
-    var val = String.fromCharCode(65 + i);
-    $btngroup.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + val + '">' + val  + '</label>');
-  }
 
-  // select the all button
-  $btngroup.find(':radio[value="*"]').prop('checked', true);
+    for (var i=0 ; i<26 ; i++) {
+      var val = String.fromCharCode(65 + i);
+      $this.append('<label class="btn btn-default"><input type="radio" name="' + $this.data('radio-name') + '" value="' + val + '">' + val  + '</label>');
+    }
+  }).find(':radio[value="*"]').prop('checked', true); // select the all button
 
   $btngroup.filter(function() {
     return $(this).closest('.btn-group').data('for')?true:false;
@@ -151,8 +148,6 @@ org.ellab.dragonstory.makeDragonBtn = function() {
       }
     }
   });
-
-  return $btngroup;
 };
 
 org.ellab.dragonstory.selectDragon = function(btngroup, dragonid) {
@@ -165,33 +160,38 @@ org.ellab.dragonstory.selectPrefix = function(btngroup, dragonid) {
 };
 
 org.ellab.dragonstory.resetRadio = function(selector, selectFirst) {
-  $(selector).find('label').each(function() {
+  var $selector = $(selector);
+
+  $selector.find('label').each(function() {
     $(this).removeClass('active').find(':radio').prop('checked', false);
   });
+
   if (selectFirst) {
-    $(selector).find('label').first().addClass('active').find(':radio').prop('checked', true);
+    $selector.find('label').first().addClass('active').find(':radio').prop('checked', true);
   }
+
+  return $selector;
 };
 
 org.ellab.dragonstory.makeLevelBtn = function() {
-  var $btngroup = $('[data-role="dragon-level-btn-group"]');
-  for (var i=1 ; i<=20; i++) {
-    $btngroup.append('<label class="btn btn-default' + (i===20?' active':'') + '"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + i + '">' + i + '</label>');
-  }
-  $btngroup.find(':radio[value=20]').prop('checked', true);
+  return $('[data-role="dragon-level-btn-group"]').each(function() {
+    var $this = $(this);
+    for (var i=1 ; i<=20; i++) {
+      $this.append('<label class="btn btn-default' + (i===20?' active':'') + '"><input type="radio" name="' + $this.data('radio-name') + '" value="' + i + '">' + i + '</label>');
+    }
+  }).find(':radio[value=20]').prop('checked', true);  // check the level 20
 };
 
 org.ellab.dragonstory.makeTypeBtn = function() {
-  var $btngroup = $('[data-role="dragon-type-btn-group"]');
-  $btngroup.each(function() {
+  return $('[data-role="dragon-type-btn-group"]').each(function() {
     var $this = $(this);
 
     var hasall = $this.data('hasall');
     if (hasall) {
-      $this.append('<label class="btn btn-default' + (hasall==='selected'?' active':'') + '"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="*">All</label>');
+      $this.append('<label class="btn btn-default' + (hasall==='selected'?' active':'') + '"><input type="radio" name="' + $this.data('radio-name') + '" value="*">All</label>');
     }
     for (var type in g_db.types) {
-      $this.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + type + '">' +
+      $this.append('<label class="btn btn-default"><input type="radio" name="' + $this.data('radio-name') + '" value="' + type + '">' +
                    '<img src="' + g_db.types[type].img + '" width="16"/></label>');
     }
     if (hasall === 'selected') {
@@ -201,23 +201,22 @@ org.ellab.dragonstory.makeTypeBtn = function() {
 };
 
 org.ellab.dragonstory.makeIncubationBtn = function() {
-  var $btngroup = $('[data-role="dragon-incubation-btn-group"]');
-  $btngroup.each(function() {
+  return  $('[data-role="dragon-incubation-btn-group"]').each(function() {
     var $this = $(this);
 
     var hasall = $this.data('hasall');
     if (hasall) {
-      $this.append('<label class="btn btn-default' + (hasall==='selected'?' active':'') + '"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="*">All</label>');
+      $this.append('<label class="btn btn-default' + (hasall==='selected'?' active':'') + '"><input type="radio" name="' + $this.data('radio-name') + '" value="*">All</label>');
     }
 
     var minhour = $this.data('min-hour');
     if (minhour) {
       // minhour === 1, value = '<7200'
-      $this.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="<' + ((minhour + 1) * 3600) + '">&lt;= ' + minhour + '</label>');
+      $this.append('<label class="btn btn-default"><input type="radio" name="' + $this.data('radio-name') + '" value="<' + ((minhour + 1) * 3600) + '">&lt;= ' + minhour + '</label>');
     }
     for (var incubation in g_db.incubation) {
       if (!minhour || incubation > minhour * 3600) {
-        $this.append('<label class="btn btn-default"><input type="radio" name="' + $btngroup.data('radio-name') + '" value="' + incubation + '">' +
+        $this.append('<label class="btn btn-default"><input type="radio" name="' + $this.data('radio-name') + '" value="' + incubation + '">' +
                          (incubation / 3600) + '</label>');
       }
     }
@@ -1100,6 +1099,49 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
       4: function(node, table, cellIndex) { return parseInt(node.getAttribute('data-sort-value'), 10); }
     }
   });
+};
+
+org.ellab.dragonstory.onDragonDBChange = function(target, containerSelector) {
+  var $container = $(containerSelector);
+
+  var targetName = target.getAttribute('name');
+  if (targetName !== 'dragondbprefix') {
+    ds.resetRadio($container.find('[data-role="dragon-prefix-btn-group"]'), true);
+  }
+  if (targetName !== 'dragondbtype') {
+    ds.resetRadio($container.find('[data-role="dragon-type-btn-group"]'), true);
+  }
+  if (targetName !== 'dragondbincubation') {
+    ds.resetRadio($container.find('[data-role="dragon-incubation-btn-group"]'), true);
+  }
+
+  var prefix = $container.find('[data-role="dragon-prefix-btn-group"] :checked').val();
+  var type = $container.find('[data-role="dragon-type-btn-group"] :checked').val();
+  var incubation = ds.getIncubationBtnSelectedRange($container.find('[data-role="dragon-incubation-btn-group"]'));
+
+  if (prefix || type || incubation) {
+    $container.find('[data-role="result"] tbody tr').each(function() {
+      var $this = $(this);
+
+      var dragonName = $this.data('dragonname') + '';  // "Infinity" will become number
+      var dragonType = $this.data('dragontype');
+      var dragonIncubation = $this.data('dragonincubation');
+
+      var nameMatch = dragonName && dragonName.length > 0 &&
+                      (!prefix || prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase());
+      var typeMatch = dragonType && dragonType.length > 0 &&
+                      (!type || type === '*' || $.inArray(type, dragonType.split(',')) !== -1);
+      var incubationMatch = dragonIncubation && dragonIncubation > 0 &&
+                            (!incubation || (dragonIncubation >= incubation.from && dragonIncubation < incubation.to));
+
+      if (nameMatch && typeMatch && incubationMatch) {
+        $this.show();
+      }
+      else {
+        $this.hide();
+      }
+    });
+  }
 };
 
 })();
