@@ -765,6 +765,14 @@ $(document).ready(function() {
 
     // The breed response handler
     $(document.body).bind('ellab.breed.response', ds.onBreedResponse);
+
+    $(document).on('click', '[data-role="do-breed"]', function() {
+      // reset the second dragon list to avoid double breed requests on below select dragon
+      ds.resetRadio('#breed-list-2');
+      ds.selectDragon('#breed-prefix-list-1', this.getAttribute('data-dragon-1'));
+      ds.selectDragon('#breed-prefix-list-2', this.getAttribute('data-dragon-2'));
+      $('.nav-tabs a[href=#breedtab][data-toggle="tab"]').click();
+    });
   })();
   // Breed Tab Event
 

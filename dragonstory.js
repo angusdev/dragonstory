@@ -611,7 +611,7 @@ org.ellab.dragonstory.DragonDBItem = function(id, breed, mydragon, egg) {
   this.egg = egg;
 };
 
-org.ellab.dragonstory.DragonDBItem.prototype.id = function() {
+org.ellab.dragonstory.DragonDBItem.prototype.dragonid = function() {
   return this.id;
 };
 
@@ -909,7 +909,7 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   html = html.replace(/<\/th><\/tr>/g, '</th></tr></thead><tbody>');
 
   // add the <span/> to wrap the text for further processing, only wrap </a>xxx<zzz>
-  html = html.replace(/<\/a>\s*([^<]+)\s*(<[^/])/g, '</a><span>$1</span>$2');
+  html = html.replace(/<\/a>\s*([^<]+)\s*(<[^\/])/g, '</a><span>$1</span>$2');
 
   // re-style table and remove all inline style
   $('#parent-result').html(html)
@@ -926,14 +926,21 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
     var $cell0 = $(this.cells[0]);
     var $cell3 = $(this.cells[3]);
 
-    [$cell0, $cell3].forEach(function(item) {
+    [$cell0, $cell3].forEach(function(item, cellidx) {
       var firstOwnedDragon = true;
 
       item.find('a').each(function() {
         var dragon = g_db.byName(this.getAttribute('title').replace(/\s+Dragon$/, ''));
+
+        // order by (1) owned > not owned (2) rarity (3) level
+        var breedPriority = dragon.rarity() * 100 * (dragon.maxlevel()>0?1:0) + dragon.maxlevel() * 10 + dragon.rarity();
+        //console.log(dragon.dragonid(), breedPriority, item.data('breed-priority'));
+        if (breedPriority > (item.data('breed-priority') || 0)) {
+          item.data('breed-priority', breedPriority).data('breed-dragonid', dragon.dragonid());
+        }
+
         if (dragon.owned()) {
           $(dragon.badgeHTML()).insertAfter(this);
-          this.setAttribute('data-parent-index', dragon.rarity() * 100 + dragon.maxlevel());
 
           if (firstOwnedDragon) {
             firstOwnedDragon = false;
@@ -957,22 +964,26 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
       });
     });
 
-    if ($cell0.find('[data-parent-index]').length && ($cell3.length === 0 || $cell3.find('[data-parent-index]').length)) {
-      // $cell3.length === 0 means it is the first table (i.e. can be bred using  one of the following ... )
+    if ($cell0.find('.badge').length && ($cell3.length === 0 || $cell3.find('.badge').length)) {
+      // $cell3.length === 0 means it is the first table (i.e. can be breed using one of the following ... )
     }
     else {
       this.setAttribute('data-not-owned-dragon', true);
       this.style.display = 'none';
     }
+
+    if ($cell3.length > 0) {
+      // the second table, can be bred using one of the following n pairs
+      var dragonid1 = $cell0.data('breed-dragonid');
+      var dragonid2 = $cell3.data('breed-dragonid');
+      $(this.cells[1]).after('<td><button data-role="do-breed" data-dragon-1="' + dragonid1 + '" data-dragon-2="' + dragonid2 + '">Breed</button></td>');
+    }
   });
 
-    // insert the 'breed' button column
-    $('#parent-result table:eq(1) thead tr').each(function() {
-      $(this.cells[1]).after('<th>Breed</th>');
-    });
-    $('#parent-result table:eq(1) tbody tr').each(function() {
-      $(this.cells[1]).after('<td></td>');
-    });
+  // insert the 'breed' button column
+  $('#parent-result table:eq(1) thead tr').each(function() {
+    $(this.cells[1]).after('<th>Breed</th>');
+  });
 };
 
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
