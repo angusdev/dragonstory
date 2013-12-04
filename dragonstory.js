@@ -1128,6 +1128,7 @@ org.ellab.dragonstory.onParentBreedBtn = function() {
     ds.selectDragon('#breed-prefix-list-1', dragon1);
     ds.selectDragon('#breed-prefix-list-2', dragon2);
     $('.nav-tabs a[href=#breedtab][data-toggle="tab"]').click();
+    $('html, body').animate({ scrollTop: $('[data-role="result-filter"]').offset().top }, 500);
   }
 };
 
