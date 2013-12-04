@@ -996,12 +996,12 @@ org.ellab.dragonstory.onParentResponse = function(e, html) {
   //   | Dragons | Types |
   // - The xxx Dragon can be bred using one of the following n pairs.
   //   | Group A Dragons | Graop A Types | Group B Types | Group B Dragons |
-  $('#parent-result table:eq(1) thead tr, #parent-result table:eq(2) thead tr').each(function() {
+  $('#parent-result table thead tr').each(function() {
     if (this.cells.length === 4) {
       $(this.cells[1]).after('<th>Breed</th>');
     }
   });
-  $('#parent-result table:eq(1) tbody tr, #parent-result table:eq(2) tbody tr').each(function() {
+  $('#parent-result table tbody tr').each(function() {
     if (this.cells.length === 4) {
       $(this.cells[1]).after('<td><button data-role="do-breed">Breed</button></td>');
     }
