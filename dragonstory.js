@@ -96,6 +96,17 @@ org.ellab.dragonstory.getIncubationSeconds = function(incubationText) {
   return parseInt(splitted[0], 10) * (splitted[1]==='seconds'?1:3600);
 };
 
+/*
+   ####                                             ####           #      #
+    #  #                                             #  #          #      #
+    #  #  # ##    ###    ## #   ###   # ##           #  #  #   #  ####   ####    ###   # ##    ###
+    #  #  ##  #      #  #  #   #   #  ##  #          ###   #   #   #      #     #   #  ##  #  #
+    #  #  #       ####   ##    #   #  #   #          #  #  #   #   #      #     #   #  #   #   ###
+    #  #  #      #   #  #      #   #  #   #          #  #  #  ##   #  #   #  #  #   #  #   #      #
+   ####   #       ####   ###    ###   #   #         ####    ## #    ##     ##    ###   #   #  ####
+                        #   #
+                         ###
+*/
 org.ellab.dragonstory.clearDragonBtns = function() {
   $('[data-role="dragon-prefix-btn-group"]').empty();
   $('[data-role="dragon-name-btn-group"]').empty();
@@ -251,6 +262,15 @@ org.ellab.dragonstory.getIncubationBtnSelectedRange = function(btngroup) {
   }
 };
 
+/*
+   ####                            #         ####           #
+    #  #                           #          #  #          #
+    #  #  # ##    ###    ###    ## #          #  #   ###   ####    ###
+    ###   ##  #  #   #  #   #  #  ##          #  #      #   #         #
+    #  #  #      #####  #####  #   #          #  #   ####   #      ####
+    #  #  #      #      #      #  ##          #  #  #   #   #  #  #   #
+   ####   #       ###    ###    ## #         ####    ####    ##    ####
+*/
 org.ellab.dragonstory.clearStoredBreedData = function() {
   if (localStorage) {
     localStorage.removeItem('ellab-dragonstory-breed');
@@ -315,6 +335,15 @@ org.ellab.dragonstory.loadBreedData = function () {
   return deferred;
 };
 
+/*
+   ####           #      #      ##                  ####           #
+    #  #          #      #       #                   #  #          #
+    #  #   ###   ####   ####     #     ###           #  #   ###   ####    ###
+    ###       #   #      #       #    #   #          #  #      #   #         #
+    #  #   ####   #      #       #    #####          #  #   ####   #      ####
+    #  #  #   #   #  #   #  #    #    #              #  #  #   #   #  #  #   #
+   ####    ####    ##     ##    ###    ###          ####    ####    ##    ####
+*/
 org.ellab.dragonstory.clearStoredBattleData = function() {
   if (localStorage) {
     localStorage.removeItem('ellab-dragonstory-battle');
@@ -378,6 +407,17 @@ org.ellab.dragonstory.loadBattleData = function () {
   return deferred;
 };
 
+/*
+   #####                       ####           #
+   #                            #  #          #
+   #       ## #   ## #          #  #   ###   ####    ###
+   ####   #  #   #  #           #  #      #   #         #
+   #       ##     ##            #  #   ####   #      ####
+   #      #      #              #  #  #   #   #  #  #   #
+   #####   ###    ###          ####    ####    ##    ####
+          #   #  #   #
+           ###    ###
+*/
 org.ellab.dragonstory.parseEggTr = function(t) {
   if (t.indexOf('<th') !== -1) {
     // this is header, skip it
@@ -522,6 +562,17 @@ org.ellab.dragonstory.loadEggData = function () {
   return deferred;
 };
 
+/*
+    ###    #                                        #   #
+   #   #   #                                        #   #
+   #      ####    ###   # ##    ###    ## #   ###   ## ##   ###   # ##    ###    ## #   ###   # ##
+    ###    #     #   #  ##  #      #  #  #   #   #  # # #      #  ##  #      #  #  #   #   #  ##  #
+       #   #     #   #  #       ####   ##    #####  #   #   ####  #   #   ####   ##    #####  #
+   #   #   #  #  #   #  #      #   #  #      #      #   #  #   #  #   #  #   #  #      #      #
+    ###     ##    ###   #       ####   ###    ###   #   #   ####  #   #   ####   ###    ###   #
+                                      #   #                                     #   #
+                                       ###                                       ###
+*/
 org.ellab.dragonstory.StorageManager = {
   settings: [
     'breed', 'battle', 'egg', 'mydragon'
@@ -604,6 +655,17 @@ org.ellab.dragonstory.StorageManager = {
   }
 };
 
+/*
+   ####                                      ####   ####
+    #  #                                      #  #   #  #
+    #  #  # ##    ###    ## #   ###   # ##    #  #   #  #
+    #  #  ##  #      #  #  #   #   #  ##  #   #  #   ###
+    #  #  #       ####   ##    #   #  #   #   #  #   #  #
+    #  #  #      #   #  #      #   #  #   #   #  #   #  #
+   ####   #       ####   ###    ###   #   #  ####   ####
+                        #   #
+                         ###
+*/
 org.ellab.dragonstory.DragonDBItem = function(id, breed, mydragon, egg) {
   this.id = id;
   this.breed = breed;
@@ -737,6 +799,17 @@ org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
   }
 };
 
+/*
+   #   #         ####
+   #   #          #  #
+   ## ##  #   #   #  #  # ##    ###    ## #   ###   # ##
+   # # #  #   #   #  #  ##  #      #  #  #   #   #  ##  #
+   #   #  #  ##   #  #  #       ####   ##    #   #  #   #
+   #   #   ## #   #  #  #      #   #  #      #   #  #   #
+   #   #      #  ####   #       ####   ###    ###   #   #
+          #   #                       #   #
+           ###                         ###
+*/
 org.ellab.dragonstory.MyDragonItem = function(dragonid, levels) {
   this.dragonid = dragonid;
   this.levels = levels;
@@ -849,6 +922,15 @@ org.ellab.dragonstory.MyDragon.prototype.hasLevel = function(dragonSetting, leve
   return (dragonSetting & (1 << (level-1)))?true:false;
 };
 
+/*
+   ####                            #         #####         #
+    #  #                           #           #           #
+    #  #  # ##    ###    ###    ## #           #     ###   # ##
+    ###   ##  #  #   #  #   #  #  ##           #        #  ##  #
+    #  #  #      #####  #####  #   #           #     ####  #   #
+    #  #  #      #      #      #  ##           #    #   #  ##  #
+   ####   #       ###    ###    ## #           #     ####  # ##
+*/
 org.ellab.dragonstory.onBreedResponse = function(e, html) {
   if (!html) {
     return;
@@ -914,6 +996,15 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
   }
 };
 
+/*
+   ####                                #            #####         #
+   #   #                               #              #           #
+   #   #   ###   # ##    ###   # ##   ####            #     ###   # ##
+   ####       #  ##  #  #   #  ##  #   #              #        #  ##  #
+   #       ####  #      #####  #   #   #              #     ####  #   #
+   #      #   #  #      #      #   #   #  #           #    #   #  ##  #
+   #       ####  #       ###   #   #    ##            #     ####  # ##
+*/
 org.ellab.dragonstory.onParentResponse = function(e, html) {
   if (!html) {
     return;
@@ -1040,6 +1131,15 @@ org.ellab.dragonstory.onParentBreedBtn = function() {
   }
 };
 
+/*
+   ####           #      #      ##                  #####         #
+    #  #          #      #       #                    #           #
+    #  #   ###   ####   ####     #     ###            #     ###   # ##
+    ###       #   #      #       #    #   #           #        #  ##  #
+    #  #   ####   #      #       #    #####           #     ####  #   #
+    #  #  #   #   #  #   #  #    #    #               #    #   #  ##  #
+   ####    ####    ##     ##    ###    ###            #     ####  # ##
+*/
 org.ellab.dragonstory.onBattleResponse = function(e, html) {
   if (!html) {
     return;
@@ -1125,6 +1225,17 @@ org.ellab.dragonstory.onBattleResponse = function(e, html) {
   }
 };
 
+/*
+   #   #             #                                            #####         #
+   #   #             #                                              #           #
+   ## ##  #   #   ## #  # ##    ###    ## #   ###   # ##            #     ###   # ##
+   # # #  #   #  #  ##  ##  #      #  #  #   #   #  ##  #           #        #  ##  #
+   #   #  #  ##  #   #  #       ####   ##    #   #  #   #           #     ####  #   #
+   #   #   ## #  #  ##  #      #   #  #      #   #  #   #           #    #   #  ##  #
+   #   #      #   ## #  #       ####   ###    ###   #   #           #     ####  # ##
+          #   #                       #   #
+           ###                         ###
+*/
 org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCountSelector) {
   function makeSaveString() {
     var saved = {};
@@ -1208,6 +1319,17 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   }
 };
 
+/*
+   ####                                          #  #             #####         #
+    #  #                                         #  #               #           #
+    #  #  # ##    ###    ## #   ###   # ##    ## #  # ##            #     ###   # ##
+    #  #  ##  #      #  #  #   #   #  ##  #  #  ##  ##  #           #        #  ##  #
+    #  #  #       ####   ##    #   #  #   #  #   #  #   #           #     ####  #   #
+    #  #  #      #   #  #      #   #  #   #  #  ##  ##  #           #    #   #  ##  #
+   ####   #       ####   ###    ###   #   #   ## #  # ##            #     ####  # ##
+                        #   #
+                         ###
+*/
 org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
   if (typeof breeds === 'undefined') {
     return;
