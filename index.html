@@ -354,7 +354,21 @@ iframe[data-role=libiframe] {
       </div>
     </div>
   </div>
-</div> <!-- #input-mydragon -->
+</div> <!-- #clear-storage -->
+
+<div class="modal" id="loading">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Dragon Story</h3>
+      </div>
+      <div class="modal-body" style="padding-top:100px; padding-bottom:100px;text-align:center;font-size:1.2em;">
+        Loading data, please wait ...
+      </div>
+    </div>
+  </div>
+</div> <!-- #loading -->
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="jquery.xdomainajax.ellab-1.0.js"></script>
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
@@ -496,6 +510,8 @@ function loadData(reload) {
         .trigger('ellab.breed.data.changed', [ breed ] )
         .trigger('ellab.battle.data.changed', [ battle ] );
     });
+
+    $('#loading').modal('hide');
   });
 }
 
@@ -619,6 +635,8 @@ var libBreedReady = false;
 var libBattleReady = false;
 
 $(document).ready(function() {
+  $('#loading').modal({ backdrop:'static', keyboard:false } );
+
   // nav bar reload data
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
