@@ -381,8 +381,9 @@ iframe[data-role=libiframe] {
 <script>
 var ds = org.ellab.dragonstory;
 
-var g_mydragon = new ds.MyDragon();
 var g_db = new ds.DragonDB();
+//var g_mydragon = new ds.MyDragon();
+var g_mydragon = null;
 
 function loadData(reload) {
   $('#dragon-count').html('Loading...');
@@ -405,6 +406,7 @@ function loadData(reload) {
     eval(breed);
     g_db.setEggs(egg);
     g_db.reindex();
+    g_mydragon = new ds.MyDragon();
 
     $('[data-role="dragon-type-dropdown"]').empty();
 

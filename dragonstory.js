@@ -28,7 +28,7 @@ var EGG_DATA_VERSION = 1;
 
 org.ellab.dragonstory.capitalize = function(s) {
   if (typeof s === 'string' && s.length > 0) {
-    return s.charAt(0).toUpperCase() + s.substring(1);
+    return s.replace(/\b[a-z]/g, function(letter) { return letter.toUpperCase(); } );
   }
   else {
     return s;
@@ -695,6 +695,10 @@ org.ellab.dragonstory.DragonDBItem.prototype.rarity = function() {
   return this.breed?this.breed.rarity:null;
 };
 
+org.ellab.dragonstory.DragonDBItem.prototype.env = function() {
+  return this.breed?this.breed.environments:null;
+};
+
 org.ellab.dragonstory.DragonDBItem.prototype.maxlevel = function() {
   return (this.mydragon && this.mydragon.maxlevel)?this.mydragon.maxlevel:0;
 };
@@ -722,6 +726,8 @@ org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
   this.nameToIdIdx = {};
   this.types = {};
   this.incubation = {};
+  this.envs = {};
+  this.rarities = {};
 
   var savedThis = this;
 
@@ -735,7 +741,7 @@ org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
 
     for (var i=0 ; i<typeArray.length ; i++) {
       var typeArrayItem = typeArray[i];
-      this.types[typeArrayItem] = { name: ds.capitalize(typeArrayItem), img: type_image_url[typeArrayItem], count:0, dragonids:[] };
+      this.types[typeArrayItem] = { type:typeArrayItem, name:ds.capitalize(typeArrayItem), img: type_image_url[typeArrayItem], count:0, dragonids:[] };
     }
   }
 
@@ -754,12 +760,31 @@ org.ellab.dragonstory.DragonDB.prototype.reindex = function() {
       });
       /*jshint loopfunc:false */
 
+      // incubation
       var incubationSeconds = ds.getIncubationSeconds(dragon.incubation);
       var incubation = this.incubation[incubationSeconds];
       if (typeof incubation === 'undefined') {
         this.incubation[incubationSeconds] = incubation = [];
       }
       incubation.push(dragonid);
+
+      // rarities
+      if (!this.rarities[dragon.rarity]) {
+        this.rarities[dragon.rarity] = { rarity:dragon.rarity, name:ds.getRarityDesc(dragon.rarity), count:0, dragonids:[] };
+      }
+      this.rarities[dragon.rarity].dragonids.push(dragonid);
+      this.rarities[dragon.rarity].count++;
+
+      // environments
+      /*jshint loopfunc:true */
+      (dragon.environments || []).forEach(function(env) {
+        if (!this.envs[env]) {
+          this.envs[env] = { env:env, name:ds.capitalize(env.replace(/_/g, ' ')), count:0, dragonids:[] };
+        }
+        this.envs[env].dragonids.push(dragonid);
+        this.envs[env].count++;
+      }, this);
+      /*jshint loopfunc:false */
     }
   }
 };
@@ -791,8 +816,8 @@ org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
     return null;
   }
 
-  if (dragonid) {
-    return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon.byID(dragonid), this.eggs[breeds[dragonid].name + ' Dragon']);
+  if (dragonid && typeof breeds !== 'undefined') {
+    return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon?g_mydragon.byID(dragonid):null, this.eggs[breeds[dragonid].name + ' Dragon']);
   }
   else {
     return null;
@@ -831,6 +856,7 @@ org.ellab.dragonstory.MyDragon = function(json) {
   this.dragonCount = 0;
   this.epicDragonCount = 0;
   this.dragonCountHTML = '';
+  this.dragonCountMoreHTML = '';
 
   if (json) {
     // from input, throw exception if parse fail
@@ -893,12 +919,35 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   this.dragonCount = 0;
   this.epicDragonCount = 0;
 
+  var envDragonCount = {};
+  var envEpicDragonCount = {};
+  var rarityDragonCount = {};
+  var rarityEpicDragonCount = {};
+
   if (this._mydragon) {
     for (var dragonid in this._mydragon) {
-      var dragon = new ds.MyDragonItem(dragonid, this._mydragon[dragonid]);
-      this.dragons[dragonid] = dragon;
-      this.dragonCount += dragon.maxlevel?1:0;
-      this.epicDragonCount += dragon.maxlevel === 10?1:0;
+      var dragonItem = new ds.MyDragonItem(dragonid, this._mydragon[dragonid]);
+      this.dragons[dragonid] = dragonItem;
+      this.dragonCount += dragonItem.maxlevel?1:0;
+      this.epicDragonCount += dragonItem.maxlevel === 10?1:0;
+
+      var dragon = g_db.byID(dragonid);
+
+      // environment
+      /*jshint loopfunc:true*/
+      ((dragon && dragon.env()) || []).forEach(function(env) {
+        if (dragonItem.maxlevel) {
+          envDragonCount[env] = (envDragonCount[env] || 0) + 1;
+        }
+        if (dragonItem.maxlevel === 10) {
+          envEpicDragonCount[env] = (envEpicDragonCount[env] || 0) + 1;
+        }
+      }, this);
+      /*jshint loopfunc:false*/
+
+      // rarity
+      rarityDragonCount[dragon.rarity()] = (rarityDragonCount[dragon.rarity()] || 0) + 1;
+      rarityEpicDragonCount[dragon.rarity()] = (rarityEpicDragonCount[dragon.rarity()] || 0) + (dragonItem.maxlevel === 10?1:0);
     }
   }
 
@@ -911,6 +960,28 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   }
   else {
     this.dragonCountHTML += '.';
+  }
+
+  this.dragonCountMoreHTML = '';
+  for (var env in envDragonCount) {
+    this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'; ':'') +
+                                ds.capitalize(env.replace(/_/g, ' ')) + ' - Total: <b>' + envDragonCount[env] + '</b>' +
+                                (envEpicDragonCount[env]?', Epic: <b>' + envEpicDragonCount[env] + '</b>':'');
+  }
+
+  var rarityHTML = '';
+  for (var rarity=1 ; rarity<=4 ; rarity++) {
+    rarityHTML += (rarityHTML?'<br/>':'') +
+                  ds.getRarityDesc(rarity) + ' - Total: <b>' + rarityDragonCount[rarity] + '</b> / <b>' +
+                    g_db.rarities[rarity].dragonids.length + '</b> (' +
+                    Math.round(rarityDragonCount[rarity] / g_db.rarities[rarity].dragonids.length * 100, 0) + '%)' +
+                  (rarityEpicDragonCount[rarity]?', Epic: <b>' + rarityEpicDragonCount[rarity] + '</b> / <b>' +
+                    rarityDragonCount[rarity] + '</b> (' +
+                    Math.round(rarityEpicDragonCount[rarity] / rarityDragonCount[rarity] * 100, 0) + '%)'
+                  :'');
+  }
+  if (rarityHTML) {
+    this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'<br/>':'') + rarityHTML;
   }
 };
 
@@ -1293,7 +1364,7 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   });
 
   if (dragonCountSelector) {
-    $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
+    $(dragonCountSelector).html(g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML);
   }
 
   if (init) {
@@ -1343,7 +1414,6 @@ org.ellab.dragonstory.buildDragonDB = function(containerSelector) {
 
   for (var dragonid in breeds) {
     var dragon = g_db.byID(dragonid);
-
     tbodyHTML += '<tr data-dragonid="' + dragonid + '" data-dragonname="' + dragon.breed.name +
                  '" data-dragontype="' + dragon.breed.types.join(',') + '" data-dragonincubation="' +
                  ds.getIncubationSeconds(dragon.breed.incubation) + '"><td>' + dragon.nameWithURL() + dragon.badgeHTML() +
