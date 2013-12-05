@@ -69,12 +69,13 @@ iframe[data-role=libiframe] {
   width: 100%;
 }
 
-#breed-result td:nth-child(2n+4) {
-  text-align: right;
+#breed-result td:first-child, #breed-result td:nth-child(2n+5),
+#parent-result td:first-child, #battle-result td:first-child {
+  text-align: left;
 }
 
-#breed-result td:nth-child(2n+5) {
-  text-align: left;
+#breed-result td:nth-child(2n+4) {
+  text-align: right;
 }
 
 #breed-result td, #parent-result td, #battle-result td {
