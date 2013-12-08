@@ -78,6 +78,16 @@ org.ellab.dragonstory.getTypeHTML = function(types, width) {
   return html;
 };
 
+// score = rarity * level
+//   where, rarity = :
+//     Common: 1
+//     Rare: 3
+//     Super Rare: 6
+//     Ultra Rare: 10
+org.ellab.dragonstory.calcDragonScore = function(rarity, level) {
+  return level * (rarity === 4?10:(rarity === 3?6:(rarity === 2?3:1)));
+};
+
 org.ellab.dragonstory.secondsToString = function(seconds) {
   if (seconds < 3600) {
     return seconds + ' seconds';
@@ -853,10 +863,6 @@ org.ellab.dragonstory.MyDragon = function(json) {
   this._dragons = {}; // MyDragonItem
   this._mydragon = {};
   this.json = '';
-  this.dragonCount = 0;
-  this.epicDragonCount = 0;
-  this.dragonCountHTML = '';
-  this.dragonCountMoreHTML = '';
 
   if (json) {
     // from input, throw exception if parse fail
@@ -915,16 +921,23 @@ org.ellab.dragonstory.MyDragon.prototype.set = function(dragons) {
 };
 
 org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
+  this.score = 0;
+  this.totalDragonScore = 0;
   this.dragons = {};
   this.dragonCount = 0;
   this.epicDragonCount = 0;
+  this.dragonCountHTML = '';
+  this.dragonCountMoreHTML = '';
+  this.dragonScoreHTML = '';
 
   var envDragonCount = {};
   var envEpicDragonCount = {};
   var rarityDragonCount = {};
   var rarityEpicDragonCount = {};
 
-  if (this._mydragon) {
+  var rarityHTML = '';
+
+  if (this._mydragon && Object.keys(this._mydragon).length > 0) {
     for (var dragonid in this._mydragon) {
       var dragonItem = new ds.MyDragonItem(dragonid, this._mydragon[dragonid]);
       this.dragons[dragonid] = dragonItem;
@@ -932,6 +945,9 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
       this.epicDragonCount += dragonItem.maxlevel === 10?1:0;
 
       var dragon = g_db.byID(dragonid);
+
+      // score
+      this.score += ds.calcDragonScore(dragon.rarity(), dragonItem.maxlevel);
 
       // environment
       /*jshint loopfunc:true*/
@@ -949,6 +965,33 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
       rarityDragonCount[dragon.rarity()] = (rarityDragonCount[dragon.rarity()] || 0) + 1;
       rarityEpicDragonCount[dragon.rarity()] = (rarityEpicDragonCount[dragon.rarity()] || 0) + (dragonItem.maxlevel === 10?1:0);
     }
+
+    // construct the rarity stat HTML and score HTML
+    for (var rarity=1 ; rarity<=4 ; rarity++) {
+      rarityHTML += (rarityHTML?'<br/>':'') +
+                    ds.getRarityDesc(rarity) + ' - Total: <b>' + (rarityDragonCount[rarity] || 0) + '</b> / <b>' +
+                      g_db.rarities[rarity].dragonids.length + '</b> (' +
+                      Math.round((rarityDragonCount[rarity] || 0) / g_db.rarities[rarity].dragonids.length * 100, 0) + '%)' +
+                    (rarityEpicDragonCount[rarity]?', Epic: <b>' + rarityEpicDragonCount[rarity] + '</b> / <b>' +
+                      rarityDragonCount[rarity] + '</b> (' +
+                      Math.round(rarityEpicDragonCount[rarity] / rarityDragonCount[rarity] * 100, 0) + '%)'
+                    :'');
+
+      this.totalDragonScore += g_db.rarities[rarity].dragonids.length * ds.calcDragonScore(rarity, 10);
+    }
+
+    for (var env in envDragonCount) {
+      this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'; ':'') +
+                                  ds.capitalize(env.replace(/_/g, ' ')) + ' - Total: <b>' + (envDragonCount[env] || 0) + '</b>' +
+                                  (envEpicDragonCount[env]?', Epic: <b>' + envEpicDragonCount[env] + '</b>':'');
+    }
+
+    if (rarityHTML) {
+      this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'<br/>':'') + rarityHTML;
+    }
+
+    this.dragonScoreHTML = '<br/>Dragon Score = <b>' + this.score + '</b> / <b>' + this.totalDragonScore + '</b> (' +
+                           Math.round(this.score / this.totalDragonScore * 100, 0) + '%)';
   }
 
   this.dragonCountHTML = 'You have <b>' + this.dragonCount + '</b> Dragon' + (this.dragonCount > 1?'s':'');
@@ -960,28 +1003,6 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   }
   else {
     this.dragonCountHTML += '.';
-  }
-
-  this.dragonCountMoreHTML = '';
-  for (var env in envDragonCount) {
-    this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'; ':'') +
-                                ds.capitalize(env.replace(/_/g, ' ')) + ' - Total: <b>' + envDragonCount[env] + '</b>' +
-                                (envEpicDragonCount[env]?', Epic: <b>' + envEpicDragonCount[env] + '</b>':'');
-  }
-
-  var rarityHTML = '';
-  for (var rarity=1 ; rarity<=4 ; rarity++) {
-    rarityHTML += (rarityHTML?'<br/>':'') +
-                  ds.getRarityDesc(rarity) + ' - Total: <b>' + rarityDragonCount[rarity] + '</b> / <b>' +
-                    g_db.rarities[rarity].dragonids.length + '</b> (' +
-                    Math.round(rarityDragonCount[rarity] / g_db.rarities[rarity].dragonids.length * 100, 0) + '%)' +
-                  (rarityEpicDragonCount[rarity]?', Epic: <b>' + rarityEpicDragonCount[rarity] + '</b> / <b>' +
-                    rarityDragonCount[rarity] + '</b> (' +
-                    Math.round(rarityEpicDragonCount[rarity] / rarityDragonCount[rarity] * 100, 0) + '%)'
-                  :'');
-  }
-  if (rarityHTML) {
-    this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'<br/>':'') + rarityHTML;
   }
 };
 
@@ -1366,6 +1387,8 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   if (dragonCountSelector) {
     $(dragonCountSelector).html(g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML);
   }
+  var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
+  $('#dragon-score-progress .progress-bar').css({ 'width': scorePct }).html(scorePct);
 
   if (init) {
     // only bind click event in first time
@@ -1381,8 +1404,10 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
 
       g_mydragon.set(makeSaveString());
       if (dragonCountSelector) {
-        $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
+        $(dragonCountSelector).html(g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML);
       }
+      var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
+      $('#dragon-score-progress .progress-bar').css({ 'width': scorePct }).html(scorePct);
 
       var $tr = $this.parent();
       $tr.find('td:first-child span.badge').remove();

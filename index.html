@@ -26,6 +26,18 @@ iframe[data-role=libiframe] {
   overflow: hidden;
 }
 
+/* fine tune the padding to reduce the too-much spaces */
+.nav > li > a {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.navbar-form {
+  padding-left: 0;
+  padding-right: 10px;
+}
+/* fine tune the padding to reduce the too-much spaces */
+
 .navbar .twitter-typeahead .tt-dropdown-menu {
   width: 360px;
 }
@@ -41,6 +53,11 @@ iframe[data-role=libiframe] {
 
 .navbar .glyphicon {
   margin-right:10px;
+}
+
+#dragon-score-progress {
+  width: 120px;
+  margin-left: 0;
 }
 
 #mydragon-result .tablesorter th:nth-child(n+5) .tablesorter-header-inner {
@@ -89,6 +106,25 @@ iframe[data-role=libiframe] {
 #dragondb-result td:nth-child(n+2) {
   text-align: center;
 }
+
+@media(max-width:991px){
+  .navbar-gameprogress-label {
+    display: none;
+  }
+
+ .navbar .twitter-typeahead {
+   width: 120px;
+ }
+
+ .navbar .twitter-typeahead .tt-dropdown-menu {
+   width: 300px;
+ }
+
+  #dragon-score-progress {
+    width: 70px;
+    margin-left: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -98,6 +134,13 @@ iframe[data-role=libiframe] {
   </div>
 
   <div class="collapse navbar-collapse navbar-right">
+    <!-- Dragon Score -->
+    <div class="nav navbar-text navbar-gameprogress-label">
+      Game Progress
+    </div>
+    <div id="dragon-score-progress" class="nav navbar-text progress">
+      <div class="progress-bar progress-bar-success" style="width: 30%;">30%</div>
+    </div>
     <ul class="nav navbar-nav">
       <!-- Dragon Dropdown -->
       <li class="dropdown">
@@ -408,6 +451,7 @@ function loadData(reload) {
     g_db.setEggs(egg);
     g_db.reindex();
     g_mydragon = new ds.MyDragon();
+    $('#dragon-score').html(g_mydragon.dragonScoreHTML);
 
     $('[data-role="dragon-type-dropdown"]').empty();
 
