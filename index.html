@@ -582,10 +582,14 @@ function loadData(reload) {
     var completed = (breedStatus.completed?1:0) + (battleStatus.completed?1:0) + (eggStatus.completed?1:0);
     if (breedStatus.beforeAjax || battleStatus.beforeAjax || eggStatus.beforeAjax) {
       if (!$('#loading').is(':visible')) {
+        // reset the progress
+        $('.progress').removeClass('active');
+        $('#loading .progress-bar').css({ width: 0 }).html(0);
+        $('.progress').addClass('active');
         $('#loading').modal('show');
       }
       var pct = Math.round(completed / 3 * 100, 0) + '%';
-      $('#loading .progress-bar').css({ width: pct }).html(pct);
+      $('#loading .progress-bar').css({ width: pct }).html(completed > 0?pct:'');
     }
   });
 }
