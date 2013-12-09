@@ -440,6 +440,7 @@ function loadData(reload) {
   if (reload) {
     ds.clearStoredBreedData();
     ds.clearStoredBattleData();
+    ds.clearStoredEggData();
   }
 
   $.when(ds.loadBreedData(), ds.loadBattleData(), ds.loadEggData()).done(function(breed, battle, egg) {
