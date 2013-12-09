@@ -310,10 +310,14 @@ org.ellab.dragonstory.loadBreedData = function () {
   var stored = this.getStoredBreedData();
   if (stored && stored.javascriptText) {
     window.setTimeout(function() {
+      deferred.notify({ completed:true, fromCache:true });
       deferred.resolve(stored.javascriptText);
     }, 0);
   }
   else {
+    window.setTimeout(function() {
+      deferred.notify({ beforeAjax:true });
+    }, 0);
     $.ajax('http://dragon-story.wikia.com/wiki/Breeding_Calculator').done(function(data) {
       data = data.replace(/[\r\n]/g, '');
       var prefix = '<div id="breedingcalculatordata" style="display:none">';
@@ -337,12 +341,13 @@ org.ellab.dragonstory.loadBreedData = function () {
           localStorage.setItem('ellab-dragonstory-breed', JSON.stringify(stored));
         }
 
+        deferred.notify({ completed:true, afterAjax:true });
         deferred.resolve(data);
       }
     });
   }
 
-  return deferred;
+  return deferred.promise();
 };
 
 /*
@@ -383,10 +388,14 @@ org.ellab.dragonstory.loadBattleData = function () {
   var stored = this.getStoredBattleData();
   if (stored && stored.javascriptText) {
     window.setTimeout(function() {
+      deferred.notify({ completed:true, fromCache:true });
       deferred.resolve(stored.javascriptText);
     }, 0);
   }
   else {
+    window.setTimeout(function() {
+      deferred.notify({ beforeAjax:true });
+    }, 0);
     $.ajax('http://dragon-story.wikia.com/wiki/Battle_Arena').done(function(data) {
       var prefix = '<div id="battlearenadata" style="display:none">';
       var pos = data.indexOf(prefix);
@@ -409,12 +418,13 @@ org.ellab.dragonstory.loadBattleData = function () {
           localStorage.setItem('ellab-dragonstory-battle', JSON.stringify(stored));
         }
 
+        deferred.notify({ completed:true, afterAjax:true });
         deferred.resolve(data);
       }
     });
   }
 
-  return deferred;
+  return deferred.promise();
 };
 
 /*
@@ -546,10 +556,14 @@ org.ellab.dragonstory.loadEggData = function () {
   var stored = this.getStoredEggData();
   if (stored) {
     window.setTimeout(function() {
-      deferred.resolve(stored.data);
+      deferred.notify({ completed:true, fromCache:true });
+      deferred.resolve(stored.javascriptText);
     }, 0);
   }
   else {
+    window.setTimeout(function() {
+      deferred.notify({ beforeAjax:true });
+    }, 0);
     $.ajax('http://dragon-story.wikia.com/wiki/Eggs').done(function(t) {
       var data = ds.parseEgg(t);
 
@@ -564,12 +578,13 @@ org.ellab.dragonstory.loadEggData = function () {
           localStorage.setItem('ellab-dragonstory-egg', JSON.stringify(stored));
         }
 
+        deferred.notify({ completed:true, afterAjax:true });
         deferred.resolve(data);
       }
     });
   }
 
-  return deferred;
+  return deferred.promise();
 };
 
 /*

@@ -139,7 +139,7 @@ iframe[data-role=libiframe] {
       Game Progress
     </div>
     <div id="dragon-score-progress" class="nav navbar-text progress">
-      <div class="progress-bar progress-bar-success" style="width: 30%;">30%</div>
+      <div class="progress-bar progress-bar-success" style="width:0%;"></div>
     </div>
     <ul class="nav navbar-nav">
       <!-- Dragon Dropdown -->
@@ -400,6 +400,9 @@ iframe[data-role=libiframe] {
   </div>
 </div> <!-- #clear-storage -->
 
+<!--
+<div class="modal" id="loading" data-backdrop="static" data-keyboard="false" data-show="false">
+-->
 <div class="modal" id="loading">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -407,7 +410,12 @@ iframe[data-role=libiframe] {
         <h3>Dragon Story</h3>
       </div>
       <div class="modal-body" style="padding-top:100px; padding-bottom:100px;text-align:center;font-size:1.2em;">
-        Loading data, please wait ...
+        <div style="margin-bottom:50px;">
+          Loading data, please wait ...
+        </div>
+        <div class="progress progress-striped">
+          <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -559,7 +567,26 @@ function loadData(reload) {
         .trigger('ellab.battle.data.changed', [ battle ] );
     });
 
-    $('#loading').modal('hide');
+    // set the progress to 100% and hide it after a while (let user see the 100% progress)
+    if ($('#loading').is(':visible')) {
+      $('#loading .progress-bar').css({ width: '100%' }).html('100%');
+      window.setTimeout(function() {
+        $('#loading').modal('hide');
+      }, 500);
+    }
+  }).progress(function(breedStatus, battleStatus, eggStatus) {
+    breedStatus = breedStatus || {};
+    battleStatus = battleStatus || {};
+    eggStatus = eggStatus || {};
+
+    var completed = (breedStatus.completed?1:0) + (battleStatus.completed?1:0) + (eggStatus.completed?1:0);
+    if (breedStatus.beforeAjax || battleStatus.beforeAjax || eggStatus.beforeAjax) {
+      if (!$('#loading').is(':visible')) {
+        $('#loading').modal('show');
+      }
+      var pct = Math.round(completed / 3 * 100, 0) + '%';
+      $('#loading .progress-bar').css({ width: pct }).html(pct);
+    }
   });
 }
 
@@ -683,7 +710,7 @@ var libBreedReady = false;
 var libBattleReady = false;
 
 $(document).ready(function() {
-  $('#loading').modal({ backdrop:'static', keyboard:false } );
+  $('#loading').modal({ backdrop:'static', keyboard:false }).modal('hide');
 
   // nav bar reload data
   $('[data-role="reload"]').click(function(e) {
