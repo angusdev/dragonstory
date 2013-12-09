@@ -672,8 +672,15 @@ function onClearStorage() {
       );
     }
 
-    $('#clear-storage-' + key + '-size').html(formatSize(info[key].size));
-    $('#clear-storage-' + key + '-updatetime').html(info[key].updateTime?moment(info[key].updateTime).fromNow():'');
+    if (info[key].size > 0) {
+      $('#clear-storage-' + key + '-size').html(formatSize(info[key].size));
+      $('#clear-storage-' + key + '-updatetime').html(info[key].updateTime?moment(info[key].updateTime).fromNow():'');
+    }
+    else {
+      $('button[data-storage-key="' + key + '"]').addClass('disabled');
+      $('#clear-storage-' + key + '-size').html('');
+      $('#clear-storage-' + key + '-updatetime').html('');
+    }
   }
 }
 
@@ -685,7 +692,7 @@ function onClearStorageClear(target) {
   }
 
   if (key === 'mydragon' && !confirm('Are you really sure to delete My Dragon data?\n\nAll your dragon settings will be erased.\n\nConsider to click "Manage" to manage your settings.')) {
-    return
+    return;
   }
 
   if (key === 'all') {
@@ -704,9 +711,8 @@ function onClearStorageClear(target) {
   }
   else {
     ds.StorageManager.removeItem(key);
-    $('#clear-storage-' + key + '-size').html('');
-    $('#clear-storage-' + key + '-updatetime').html('');
-    $(target).addClass('disabled');
+    // refresh the content
+    onClearStorage();
   }
 }
 
