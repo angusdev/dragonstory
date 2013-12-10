@@ -948,7 +948,6 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
   this.epicDragonCount = 0;
   this.dragonCountHTML = '';
   this.dragonCountMoreHTML = '';
-  this.dragonScoreHTML = '';
 
   var envDragonCount = {};
   var envEpicDragonCount = {};
@@ -1009,9 +1008,6 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
     if (rarityHTML) {
       this.dragonCountMoreHTML += (this.dragonCountMoreHTML?'<br/>':'') + rarityHTML;
     }
-
-    this.dragonScoreHTML = '<br/>Dragon Score = <b>' + this.score + '</b> / <b>' + this.totalDragonScore + '</b> (' +
-                           Math.round(this.score / this.totalDragonScore * 100, 0) + '%)';
   }
 
   this.dragonCountHTML = 'You have <b>' + this.dragonCount + '</b> Dragon' + (this.dragonCount > 1?'s':'');
@@ -1366,7 +1362,7 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   }
 
   function updateDragonScoreProgress() {
-    var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
+    var scorePct = Math.floor(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
     /*jshint multistr:true */
     var html = '<div>Your Game Progress is: <b>' + scorePct + '</b> (' +
                ds.thousandSep(g_mydragon.score) + ' / ' + ds.thousandSep(g_mydragon.totalDragonScore) + ')</div>';
