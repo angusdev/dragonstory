@@ -1450,6 +1450,28 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   }
 };
 
+org.ellab.dragonstory.onMyDragonPrefixChange = function(e) {
+  $(this).prop('checked', true);  // fix the bug in bootstrap that click checked radio will uncheck but fire change event
+  var prefix = $(this).closest('.btn-group').find(':checked').val();
+  if (prefix) {
+    $('#mydragon-result tbody tr').each(function() {
+      var $this = $(this);
+      var dragonName = $this.attr('data-dragonname');
+      if (dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase())) {
+        $this.show();
+      }
+      else {
+        $this.hide();
+      }
+    });
+  }
+};
+
+org.ellab.dragonstory.onMyDragonSelectDragon = function(e, dragonid) {
+  $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid=' + dragonid + ']').show();
+  $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid!=' + dragonid + ']').hide();
+};
+
 /*
    ####                                          #  #             #####         #
     #  #                                         #  #               #           #

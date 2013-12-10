@@ -968,26 +968,9 @@ $(document).ready(function() {
            #   #                       #   #
             ###                         ###
   */
-  $('#mydragon-prefix-list').on('change', ':radio', function() {
-    var prefix = $(this).closest('.btn-group').find(':checked').val();
-    if (prefix) {
-      $('#mydragon-result tbody tr').each(function() {
-        var $this = $(this);
-        var dragonName = $this.data('dragonname');
-        if (dragonName && dragonName.length > 0 && (prefix === '*' || dragonName.charAt(0).toUpperCase() === prefix.toUpperCase())) {
-          $this.show();
-        }
-        else {
-          $this.hide();
-        }
-      });
-    }
-  });
+  $('#mydragon-prefix-list').on('change', ':radio', ds.onMyDragonPrefixChange);
 
-  $(document).bind('ellab.selectdragon', function(e, dragonid) {
-    $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid=' + dragonid + ']').show();
-    $('.tab-content .tab-pane.active #mydragon-result tbody tr[data-dragonid!=' + dragonid + ']').hide();
-  });
+  $(document).bind('ellab.selectdragon', ds.onMyDragonSelectDragon);
 
   /*
      ####                                      ####   ####          #####                        #
