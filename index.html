@@ -26,6 +26,16 @@ iframe[data-role=libiframe] {
   overflow: hidden;
 }
 
+.dragon-name {
+  color: rgb(153, 51, 1);
+  font-weight: bold;
+}
+
+.dragon-rarity {
+  color: rgb(100, 100, 100);
+  font-weight: bold;
+}
+
 /* fine tune the padding to reduce the too-much spaces */
 .nav > li > a {
   padding-left: 10px;
@@ -55,9 +65,23 @@ iframe[data-role=libiframe] {
   margin-right:10px;
 }
 
+.navbar .popover {
+  max-width: 800px;
+}
+
+.navbar .popover hr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.navbar .popover .popover-content > div:first-child {
+  margin-top: 5px;
+}
+
 #dragon-score-progress {
   width: 120px;
   margin-left: 0;
+  cursor: pointer;
 }
 
 #mydragon-result .tablesorter th:nth-child(n+5) .tablesorter-header-inner {
@@ -138,7 +162,7 @@ iframe[data-role=libiframe] {
     <div class="nav navbar-text navbar-gameprogress-label">
       Game Progress
     </div>
-    <div id="dragon-score-progress" class="nav navbar-text progress">
+    <div id="dragon-score-progress" class="nav navbar-text progress" data-trigger="click" data-toggle="popover" data-placement="bottom" data-html="true" title="Game Progress">
       <div class="progress-bar progress-bar-success" style="width:0%;"></div>
     </div>
     <ul class="nav navbar-nav">
@@ -722,6 +746,8 @@ var libBattleReady = false;
 $(document).ready(function() {
   $('#loading').modal({ backdrop:'static', keyboard:false }).modal('hide');
 
+  $('[data-toggle="popover"]').popover();
+
   // nav bar reload data
   $('[data-role="reload"]').click(function(e) {
     loadData(true);
@@ -1033,7 +1059,6 @@ $(document).ready(function() {
   // Everything ready
   $(document.body).append('<iframe id="breedlib" src="breed-lib.html" data-role="libiframe"></iframe>')
                   .append('<iframe id="battlelib" src="battle-lib.html" data-role="libiframe"></iframe>');
-
 });
 </script>
 </html>

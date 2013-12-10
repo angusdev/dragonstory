@@ -35,6 +35,11 @@ org.ellab.dragonstory.capitalize = function(s) {
   }
 };
 
+// doesn't work on decimal
+org.ellab.dragonstory.thousandSep = function(n) {
+  return ('' + n).replace(/\d(?=(?:\d{3})+(?!\d))/g, '$&,');
+};
+
 org.ellab.dragonstory.extract = function(s, prefix, suffix) {
   var i;
   if (prefix) {
@@ -557,7 +562,7 @@ org.ellab.dragonstory.loadEggData = function () {
   if (stored) {
     window.setTimeout(function() {
       deferred.notify({ completed:true, fromCache:true });
-      deferred.resolve(stored.javascriptText);
+      deferred.resolve(stored.data);
     }, 0);
   }
   else {
@@ -984,8 +989,8 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
     // construct the rarity stat HTML and score HTML
     for (var rarity=1 ; rarity<=4 ; rarity++) {
       rarityHTML += (rarityHTML?'<br/>':'') +
-                    ds.getRarityDesc(rarity) + ' - Total: <b>' + (rarityDragonCount[rarity] || 0) + '</b> / <b>' +
-                      g_db.rarities[rarity].dragonids.length + '</b> (' +
+                    '<span class="dragon-rarity">' + ds.getRarityDesc(rarity) + '</span> - Total: <b>' +
+                      (rarityDragonCount[rarity] || 0) + '</b> / <b>' + g_db.rarities[rarity].dragonids.length + '</b> (' +
                       Math.round((rarityDragonCount[rarity] || 0) / g_db.rarities[rarity].dragonids.length * 100, 0) + '%)' +
                     (rarityEpicDragonCount[rarity]?', Epic: <b>' + rarityEpicDragonCount[rarity] + '</b> / <b>' +
                       rarityDragonCount[rarity] + '</b> (' +
@@ -1360,6 +1365,26 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
     return JSON.stringify(saved);
   }
 
+  function updateDragonScoreProgress() {
+    var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
+    /*jshint multistr:true */
+    var html = '<div>Your Game Progress is: <b>' + scorePct + '</b> (' +
+               ds.thousandSep(g_mydragon.score) + ' / ' + ds.thousandSep(g_mydragon.totalDragonScore) + ')</div>';
+    html += '<hr><div>' + g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML + '</div>';
+    html += '<hr><div>Game Progress is calculated by:</div>                                               \
+             <div style="padding-left: 20px;">Sum of (Rarity x Highest Level) or your dragons.  Where Rarity is, </div>   \
+             <div style="padding-left: 40px;">                                                            \
+             <table border="0"><tr><td><span class="dragon-rarity">Common</span>: </td><td>1</td></tr>    \
+             <tr><td><span class="dragon-rarity">Rare</span>: </td><td>3</td></tr>                        \
+             <tr><td><span class="dragon-rarity">Super Rare</span>: </td><td>6</td></tr>                  \
+             <tr><td><span class="dragon-rarity">Ultra Rare</span>: </td><td>10</td></tr>                 \
+             </table></div>';
+    /*jshint multistr:false */
+
+    $('#dragon-score-progress .progress-bar').css({ 'width': scorePct }).html(scorePct);
+    $('#dragon-score-progress').attr('data-content', html);
+  }
+
   var tbodyHTML = '';
   var theadHTML = '';
   var dragonCount = 0;
@@ -1400,10 +1425,9 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
   });
 
   if (dragonCountSelector) {
-    $(dragonCountSelector).html(g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML);
+    $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
   }
-  var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
-  $('#dragon-score-progress .progress-bar').css({ 'width': scorePct }).html(scorePct);
+  updateDragonScoreProgress();
 
   if (init) {
     // only bind click event in first time
@@ -1419,10 +1443,9 @@ org.ellab.dragonstory.buildMyDragon = function(init, containerSelector, dragonCo
 
       g_mydragon.set(makeSaveString());
       if (dragonCountSelector) {
-        $(dragonCountSelector).html(g_mydragon.dragonCountHTML + '<br/>' + g_mydragon.dragonCountMoreHTML);
+        $(dragonCountSelector).html(g_mydragon.dragonCountHTML);
       }
-      var scorePct = Math.round(g_mydragon.score / g_mydragon.totalDragonScore * 100, 0) + '%';
-      $('#dragon-score-progress .progress-bar').css({ 'width': scorePct }).html(scorePct);
+      updateDragonScoreProgress();
 
       var $tr = $this.parent();
       $tr.find('td:first-child span.badge').remove();
