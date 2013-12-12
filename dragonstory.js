@@ -286,33 +286,10 @@ org.ellab.dragonstory.getIncubationBtnSelectedRange = function(btngroup) {
     #  #  #      #      #      #  ##          #  #  #   #   #  #  #   #
    ####   #       ###    ###    ## #         ####    ####    ##    ####
 */
-org.ellab.dragonstory.clearStoredBreedData = function() {
-  if (localStorage) {
-    localStorage.removeItem('ellab-dragonstory-breed');
-  }
-};
-
-org.ellab.dragonstory.getStoredBreedData = function() {
-  var stored = localStorage?localStorage.getItem('ellab-dragonstory-breed'):null;
-  if (stored) {
-    try {
-      stored = JSON.parse(stored);
-      if (stored.version !== BREED_DATA_VERSION) {
-        stored = null;
-      }
-    }
-    catch (ex) {
-      stored = null;
-    }
-  }
-
-  return stored;
-};
-
 org.ellab.dragonstory.loadBreedData = function () {
   var deferred = $.Deferred();
 
-  var stored = this.getStoredBreedData();
+  var stored = ds.StorageManager.getVersionedData('breed', BREED_DATA_VERSION);
   if (stored && stored.javascriptText) {
     window.setTimeout(function() {
       deferred.notify({ completed:true, fromCache:true });
@@ -364,33 +341,10 @@ org.ellab.dragonstory.loadBreedData = function () {
     #  #  #   #   #  #   #  #    #    #              #  #  #   #   #  #  #   #
    ####    ####    ##     ##    ###    ###          ####    ####    ##    ####
 */
-org.ellab.dragonstory.clearStoredBattleData = function() {
-  if (localStorage) {
-    localStorage.removeItem('ellab-dragonstory-battle');
-  }
-};
-
-org.ellab.dragonstory.getStoredBattleData = function() {
-  var stored = localStorage?localStorage.getItem('ellab-dragonstory-battle'):null;
-  if (stored) {
-    try {
-      stored = JSON.parse(stored);
-      if (stored.version !== BATTLE_DATA_VERSION) {
-        stored = null;
-      }
-    }
-    catch (ex) {
-      stored = null;
-    }
-  }
-
-  return stored;
-};
-
 org.ellab.dragonstory.loadBattleData = function () {
   var deferred = $.Deferred();
 
-  var stored = this.getStoredBattleData();
+  var stored = ds.StorageManager.getVersionedData('battle', BATTLE_DATA_VERSION);
   if (stored && stored.javascriptText) {
     window.setTimeout(function() {
       deferred.notify({ completed:true, fromCache:true });
@@ -532,33 +486,10 @@ org.ellab.dragonstory.parseEgg = function(t) {
   return data;
 };
 
-org.ellab.dragonstory.clearStoredEggData = function() {
-  if (localStorage) {
-    localStorage.removeItem('ellab-dragonstory-egg');
-  }
-};
-
-org.ellab.dragonstory.getStoredEggData = function() {
-  var stored = localStorage?localStorage.getItem('ellab-dragonstory-egg'):null;
-  if (stored) {
-    try {
-      stored = JSON.parse(stored);
-      if (stored.version !== EGG_DATA_VERSION) {
-        stored = null;
-      }
-    }
-    catch (ex) {
-      stored = null;
-    }
-  }
-
-  return stored;
-};
-
 org.ellab.dragonstory.loadEggData = function () {
   var deferred = $.Deferred();
 
-  var stored = this.getStoredEggData();
+  var stored = ds.StorageManager.getVersionedData('egg', EGG_DATA_VERSION);
   if (stored) {
     window.setTimeout(function() {
       deferred.notify({ completed:true, fromCache:true });
@@ -604,6 +535,8 @@ org.ellab.dragonstory.loadEggData = function () {
                                        ###                                       ###
 */
 org.ellab.dragonstory.StorageManager = {
+  KEY_PREFIX: 'ellab-dragonstory-',
+
   settings: [
     'breed', 'battle', 'egg', 'mydragon'
   ],
@@ -659,12 +592,12 @@ org.ellab.dragonstory.StorageManager = {
   },
 
   getItem: function(key) {
-    return localStorage?localStorage.getItem('ellab-dragonstory-' + key):null;
+    return localStorage?localStorage.getItem(this.KEY_PREFIX + key):null;
   },
 
   removeItem: function(key) {
     if (localStorage) {
-      localStorage.removeItem('ellab-dragonstory-' + key);
+      localStorage.removeItem(this.KEY_PREFIX + key);
     }
   },
 
@@ -672,9 +605,15 @@ org.ellab.dragonstory.StorageManager = {
   removeTotal: function(key) {
     if (localStorage) {
       for (var i=0 ; i<this.settings.length ; i++) {
-        localStorage.removeItem('ellab-dragonstory-' + this.settings[i]);
+        localStorage.removeItem(this.KEY_PREFIX + this.settings[i]);
       }
     }
+  },
+
+  removeExternalData: function() {
+    this.removeItem('breed');
+    this.removeItem('battle');
+    this.removeItem('egg');
   },
 
   // empty the entire localStorage
@@ -682,6 +621,24 @@ org.ellab.dragonstory.StorageManager = {
     if (localStorage) {
       localStorage.clear();
     }
+  },
+
+  // Get the data of specified version, return null if not found or the version is incorrect
+  getVersionedData: function(key, expectedVersion) {
+    var stored = localStorage?localStorage.getItem(this.KEY_PREFIX + key):null;
+    if (stored) {
+      try {
+        stored = JSON.parse(stored);
+        if (stored.version !== expectedVersion) {
+          stored = null;
+        }
+      }
+      catch (ex) {
+        stored = null;
+      }
+    }
+
+    return stored;
   }
 };
 
@@ -879,7 +836,7 @@ org.ellab.dragonstory.MyDragonItem = function(dragonid, levels) {
 };
 
 org.ellab.dragonstory.MyDragon = function(json) {
-  this.KEY = 'ellab-dragonstory-mydragon';
+  this.KEY = 'mydragon';
   this._dragons = {}; // MyDragonItem
   this._mydragon = {};
   this.json = '';
@@ -891,20 +848,7 @@ org.ellab.dragonstory.MyDragon = function(json) {
     this.onChange();
   }
   else {
-    // read from localStorage
-    var stored = localStorage?localStorage.getItem(this.KEY):null;
-    if (stored) {
-      try {
-        stored = JSON.parse(stored);
-        if (stored.version !== MYDRAGON_DATA_VERSION) {
-          stored = null;
-        }
-      }
-      catch (ex) {
-        stored = null;
-      }
-    }
-
+    var stored = ds.StorageManager.getVersionedData(this.KEY, MYDRAGON_DATA_VERSION);
     this._mydragon = stored?stored.mydragon:null;
     this.json = this._mydragon?JSON.stringify(this._mydragon):'';
     this.onChange();
@@ -932,7 +876,7 @@ org.ellab.dragonstory.MyDragon.prototype.set = function(dragons) {
   this.json = json;
 
   if (localStorage) {
-    localStorage.setItem(this.KEY, JSON.stringify({ version: MYDRAGON_DATA_VERSION, mydragon: mydragon, updateTime: new Date() }));
+    localStorage.setItem('ellab-dragonstory-' + this.KEY, JSON.stringify({ version: MYDRAGON_DATA_VERSION, mydragon: mydragon, updateTime: new Date() }));
   }
 
   this.onChange();
