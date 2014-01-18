@@ -317,7 +317,7 @@ org.ellab.dragonstory.loadBreedData = function () {
         if (!stored) {
           stored = { version: BREED_DATA_VERSION };
         }
-        stored.javascriptText = data;
+        stored.javascriptText = data.replace(/, warden: \{[^}]+\}/, '').replace(/, fourleaf: \{[^}]+\}/, '');
         stored.updateTime = new Date();
         if (localStorage) {
           localStorage.setItem('ellab-dragonstory-breed', JSON.stringify(stored));
@@ -804,7 +804,13 @@ org.ellab.dragonstory.DragonDB.prototype.byID = function(dragonid) {
   }
 
   if (dragonid && typeof breeds !== 'undefined') {
-    return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon?g_mydragon.byID(dragonid):null, this.eggs[breeds[dragonid].name + ' Dragon']);
+    if (breeds[dragonid]) {
+      return new ds.DragonDBItem(dragonid, breeds[dragonid], g_mydragon?g_mydragon.byID(dragonid):null, this.eggs[breeds[dragonid].name + ' Dragon']);
+    }
+    else {
+      // for some reason mydragon has the dragon but breeds does not
+      return null;
+    }
   }
   else {
     return null;
@@ -908,6 +914,11 @@ org.ellab.dragonstory.MyDragon.prototype.onChange = function() {
       this.epicDragonCount += dragonItem.maxlevel === 10?1:0;
 
       var dragon = g_db.byID(dragonid);
+
+      // for some reason mydragon has the dragon but breeds does not
+      if (!dragon) {
+        continue;
+      }
 
       // score
       this.score += ds.calcDragonScore(dragon.rarity(), dragonItem.maxlevel);
