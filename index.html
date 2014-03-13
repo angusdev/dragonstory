@@ -502,8 +502,10 @@ function loadData(reload) {
 
         // build the type count
         (breeds[dragonid].types || []).forEach(function(type) {
-          typeCount[type].count++;
-          typeCount[type].dragons.push({dragonid: dragonid, dragon: breeds[dragonid]});
+          if (typeCount[type]) {
+            typeCount[type].count++;
+            typeCount[type].dragons.push({dragonid: dragonid, dragon: breeds[dragonid]});
+          }
         });
 
         // compare the added dragons
