@@ -479,6 +479,10 @@ function loadData(reload) {
 
     // I know, I know this is dangerous
     eval(breed);
+    // For some reason the breed data doesn't contain the egypt type image
+    if (type_image_url && typeof type_image_url['egypt'] === 'undefined') {
+      type_image_url['egypt'] = 'http://img4.wikia.nocookie.net/__cb20140312050356/dragon-story/images/e/e8/Egypt30px.png';
+    }
     g_db.setEggs(egg);
     g_db.reindex();
     g_mydragon = new ds.MyDragon();
