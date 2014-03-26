@@ -1024,7 +1024,7 @@ org.ellab.dragonstory.onBreedResponse = function(e, html) {
     });
 
     // highlight breeding result that is not owned
-    $('#breed-result tbody tr').filter(function() {
+    $('#breed-result tbody tr + tr').filter(function() {
       return this.cells[0].innerHTML.indexOf('badge') === -1;
     }).addClass('success');
   }
