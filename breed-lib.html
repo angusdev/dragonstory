@@ -56,6 +56,10 @@ function onBreedRequest(e, dragonid1, dragonid2) {
     $('#breeddragons_dragon1choices option').filter(function() { return this.textContent === breeds[dragonid1].name }).prop('selected', true);
     $('#breeddragons_dragon2choices option').filter(function() { return this.textContent === breeds[dragonid2].name }).prop('selected', true);
 
+    HtmlOutput.prototype.output = function(s) {
+      window.parent.$('body').trigger('ellab.breed.response', [ s ]);
+    }
+
 	  // call the wikia function
     getBreedingOutcome();
 
@@ -67,6 +71,10 @@ function onParentRequest(e, dragonid) {
   if (dragonid) {
     // fill in the hidden element used by the function
     $('#findparents_dragonchoices option').filter(function() { return this.textContent === breeds[dragonid].name }).prop('selected', true);
+
+    HtmlOutput.prototype.output = function(s) {
+      window.parent.$('body').trigger('ellab.parent.response', [ s ]);
+    }
 
     // call the wikia function
     getPossibleParents();
